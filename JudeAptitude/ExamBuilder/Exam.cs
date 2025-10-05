@@ -11,9 +11,7 @@ namespace JudeAptitude.ExamBuilder
         public Guid Id { get; }
         public string Title { get; }
         public string Description { get; set; }
-
         public bool IsMarked { get; }
-
         public List<Page> Pages { get; set; }
 
 
@@ -26,18 +24,29 @@ namespace JudeAptitude.ExamBuilder
             Pages = new List<Page>();
         }
 
+        #region Validation
+
         public ValidationResult ValidateExam()
         {
             var validationErrors = new List<string>();
 
             var examHasPages = Pages != null && Pages.Count > 0;
-            var examHasQuestions = Questions().Count > 0;
+            var examHasQuestions = AllQuestions().Count > 0;
 
             var examHasMarkedQuestions = false;
 
             if (IsMarked)
             {
-                examHasMarkedQuestions = QuestionsCountingTowardsMark().Count > 0;
+                examHasMarkedQuestions = AllQuestionsCountingTowardsMark().Count > 0;
+
+                if (examHasMarkedQuestions == true)
+                {
+                    validationErrors.AddRange(ValidateQuestionsCountingTowardsMark());
+                }
+                else
+                {
+                    validationErrors.Add("Exam is Marked but has no Questions that count towards Mark");
+                }
             }
 
             if (examHasPages == false)
@@ -50,14 +59,33 @@ namespace JudeAptitude.ExamBuilder
                 validationErrors.Add("Exam has no Questions");
             }
 
-            if (IsMarked && examHasMarkedQuestions == false)
+            if (validationErrors.Count() > 0)
             {
-                validationErrors.Add("Exam is Marked but has no Questions that count towards Mark");
+                return ValidationResult.Invalid(validationErrors);
             }
 
             return ValidationResult.Valid();
         }
 
+        private List<string> ValidateQuestionsCountingTowardsMark()
+        {
+            var validationErrors = new List<string>();
+
+            var questionsCountingTowardsMark = AllQuestionsCountingTowardsMark();
+
+            foreach(var question in questionsCountingTowardsMark)
+            {
+                var result = question.ValidateQuestion();
+                if (!result.IsValid)
+                {
+                    validationErrors.AddRange(result.Errors);
+                }
+            }
+
+            return validationErrors;
+        }
+
+        #endregion
 
         public List<Question> AllQuestionsCountingTowardsMark()
         {

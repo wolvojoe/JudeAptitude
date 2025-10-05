@@ -136,7 +136,7 @@ namespace JudeAptitude.Attempt
 
             foreach (var answer in Answers)
             {
-                var question = Exam.GetAllQuestions()
+                var question = Exam.AllQuestionsCountingTowardsMark()
                                    .FirstOrDefault(q => q.Id == answer.QuestionId);
 
                 decimal questionScore = 0m;
@@ -148,6 +148,10 @@ namespace JudeAptitude.Attempt
                 else if (question is FreeTextQuestion ftq && question.MarkingStrategy is FreeTextMarkingStrategy ftStrategy)
                 {
                     questionScore = ftStrategy.Evaluate(ftq, answer);
+                }
+                else if (question is SliderQuestion sq && question.MarkingStrategy is SliderThresholdStrategy sqStrategy)
+                {
+                    questionScore = sqStrategy.Evaluate(sq, answer);
                 }
 
                 answer.Score = questionScore;

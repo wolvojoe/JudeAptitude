@@ -29,5 +29,15 @@ namespace JudeAptitude.ExamBuilder.Marking.Strategies
 
             return Math.Max(score, 0.0m);
         }
+
+        public decimal Evaluate(FreeTextQuestion question, Answer answer)
+        {
+            throw new NotImplementedException("This strategy is not for free text questions.");
+        }
+
+        public decimal Evaluate(SliderQuestion question, Answer answer)
+        {
+            throw new NotImplementedException("This strategy is not for slider questions.");
+        }
     }
 }

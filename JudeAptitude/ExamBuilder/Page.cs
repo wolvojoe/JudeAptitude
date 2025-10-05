@@ -6,7 +6,7 @@ namespace JudeAptitude.ExamBuilder
 {
     public class Page
     {
-        public Guid PageId { get; }
+        public Guid Id { get; }
 
         public string Title { get; }
 
@@ -17,7 +17,7 @@ namespace JudeAptitude.ExamBuilder
         public Page(string title)
         {
             Title = title;
-            PageId = Guid.NewGuid();
+            Id = Guid.NewGuid();
             Questions = new List<Question>();
         }
     }

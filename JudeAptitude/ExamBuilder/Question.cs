@@ -2,6 +2,7 @@
 using JudeAptitude.ExamBuilder.Marking.Strategies;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace JudeAptitude.ExamBuilder
@@ -10,6 +11,8 @@ namespace JudeAptitude.ExamBuilder
     {
         public Guid Id { get; }
         public string Prompt { get; set; }
+        public string Description { get; set; }
+
         public bool CountsTowardsMarking { get; set; }
 
         private IMarkingStrategy _markingStrategy { get; set; }
@@ -22,12 +25,14 @@ namespace JudeAptitude.ExamBuilder
         }
 
         
-        public Question(bool countsTowardsMarking = true)
+        public Question()
         {
             Id = Guid.NewGuid();
             _markingStrategy = new AllOrNothingStrategy();
-            CountsTowardsMarking = countsTowardsMarking;
+            CountsTowardsMarking = true;
         }
+
+        public abstract ValidationResult ValidateQuestion();
     }
 
     public class MultipleChoiceQuestion : Question
@@ -54,6 +59,34 @@ namespace JudeAptitude.ExamBuilder
         {
             _markingStrategy = new PartialCreditStrategy();
         }
+
+        public override ValidationResult ValidateQuestion()
+        {
+            var validationErrors = new List<string>();
+
+            if (Options.Count < 2)
+            {
+                validationErrors.Add($"A multiple choice question must have at least 2 options. {Id}");
+            }
+
+            if (CountsTowardsMarking)
+            {
+                if (CorrectAnswers.Count < 1)
+                {
+                    validationErrors.Add($"A multiple choice question must have at least 1 correct answer. {Id}");
+                }
+
+                foreach (var correctAnswer in CorrectAnswers)
+                {
+                    if (Options.Where(x => x == correctAnswer).Count() == 0)
+                    {
+                        validationErrors.Add($"Correct answer '{correctAnswer}' is not in the list of options. {Id}");
+                    }
+                }
+            }
+
+            return validationErrors.Count == 0 ? ValidationResult.Valid() : ValidationResult.Invalid(validationErrors);
+        }
     }
 
 
@@ -74,6 +107,27 @@ namespace JudeAptitude.ExamBuilder
             UseExactMatch = true;
             _markingStrategy = new FreeTextMarkingStrategy();
         }
+
+
+        public override ValidationResult ValidateQuestion()
+        {
+            var validationErrors = new List<string>();
+
+            if (CountsTowardsMarking)
+            {
+                if (UseExactMatch == true && ExpectedAnswer.Length == 0)
+                {
+                    validationErrors.Add($"A Free Text question needs an Expected Answer {Id}");
+                }
+
+                if (UseExactMatch == false && Keywords.Count() == 0)
+                {
+                    validationErrors.Add($"A Free Text question needs Expected Keywords {Id}");
+                }
+            }
+
+            return validationErrors.Count == 0 ? ValidationResult.Valid() : ValidationResult.Invalid(validationErrors);
+        }
     }
 
 
@@ -90,6 +144,17 @@ namespace JudeAptitude.ExamBuilder
             _markingStrategy = new SliderThresholdStrategy();
         }
 
+        public override ValidationResult ValidateQuestion()
+        {
+            var validationErrors = new List<string>();
+
+            if (MinValue >= MaxValue)
+            {
+                validationErrors.Add($"A Slider question needs a Min Value less than the Max Value {Id}");
+            }
+
+            return validationErrors.Count == 0 ? ValidationResult.Valid() : ValidationResult.Invalid(validationErrors);
+        }
     }
 
 

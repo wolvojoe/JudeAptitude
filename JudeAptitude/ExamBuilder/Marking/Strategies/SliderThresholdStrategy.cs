@@ -23,6 +23,11 @@ namespace JudeAptitude.ExamBuilder.Marking.Strategies
             throw new NotImplementedException("This strategy is not for multiple choice questions.");
         }
 
+        public decimal Evaluate(FreeTextQuestion question, Answer answer)
+        {
+            throw new NotImplementedException("This strategy is not for free text questions.");
+        }
+
         public decimal Evaluate(SliderQuestion question, Answer answer)
         {
             var answerValue = answer.GivenNumber;
