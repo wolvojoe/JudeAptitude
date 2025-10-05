@@ -16,18 +16,23 @@ namespace JudeAptitude.Attempt
 
         public List<Guid> ExamPageIds;
         public Guid CurrentPageId;
-
-        public ExamResult _result { get; set; }
         public bool IsCompleted { get; set; }
-
         public List<Answer> Answers { get; }
+
+
+
+        private ExamResult _result { get; set; }
 
         private int _currentPageIndex = 0;
 
         public ExamAttempt(Exam exam)
         {
             Exam = exam;
-            exam.ValidateExam();
+
+            if (exam.ValidateExam().IsValid == false)
+            {
+                throw new InvalidOperationException("Exam is not valid to attempt. " + string.Join(", ", exam.ValidateExam().Errors));
+            }
 
             ExamAttemptId = Guid.NewGuid();
             Answers = new List<Answer>();
@@ -54,7 +59,7 @@ namespace JudeAptitude.Attempt
 
         public void AddAnswer(Guid questionId, string givenAnswer)
         {
-            var question = Exam.GetAllQuestions().FirstOrDefault(q => q.Id == questionId);
+            var question = Exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
             if (question == null)
                 throw new InvalidOperationException("Question not found in exam.");
 
@@ -74,7 +79,7 @@ namespace JudeAptitude.Attempt
 
         public void AddAnswer(Guid questionId, List<string> selectedAnswers)
         {
-            var question = Exam.GetAllQuestions().FirstOrDefault(q => q.Id == questionId);
+            var question = Exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
             if (question == null)
                 throw new InvalidOperationException("Question not found.");
 
@@ -89,7 +94,7 @@ namespace JudeAptitude.Attempt
 
         public void AddAnswer(Guid questionId, int sliderValue)
         {
-            var question = Exam.GetAllQuestions().FirstOrDefault(q => q.Id == questionId);
+            var question = Exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
             if (question == null)
                 throw new InvalidOperationException("Question not found.");
 

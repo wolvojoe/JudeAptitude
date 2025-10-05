@@ -10,9 +10,9 @@ namespace JudeAptitude.ExamBuilder
     {
         public Guid Id { get; }
         public string Prompt { get; set; }
-        public bool IsMarked { get; set; }
+        public bool CountsTowardsMarking { get; set; }
 
-
+        private IMarkingStrategy _markingStrategy { get; set; }
         public IMarkingStrategy MarkingStrategy 
         { 
             get
@@ -21,12 +21,12 @@ namespace JudeAptitude.ExamBuilder
             }
         }
 
-        private IMarkingStrategy _markingStrategy { get; set; }
         
-        public Question()
+        public Question(bool countsTowardsMarking = true)
         {
             Id = Guid.NewGuid();
             _markingStrategy = new AllOrNothingStrategy();
+            CountsTowardsMarking = countsTowardsMarking;
         }
     }
 
