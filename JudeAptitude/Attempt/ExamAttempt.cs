@@ -1,27 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using JudeAptitude.ExamBuilder;
-using JudeAptitude.ExamBuilder.Marking;
+﻿using JudeAptitude.ExamBuilder;
 using JudeAptitude.ExamBuilder.Marking.Interfaces;
 using JudeAptitude.ExamBuilder.Marking.Strategies;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace JudeAptitude.Attempt
 {
     public class ExamAttempt
     {
         public Guid ExamAttemptId { get; set; }
+
         public Exam Exam { get; set; }
 
-        public List<Guid> ExamPageIds;
-        public Guid CurrentPageId;
         public bool IsCompleted { get; set; }
         public List<Answer> Answers { get; }
-
-
-
         private ExamResult _result { get; set; }
+
 
         private int _currentPageIndex = 0;
 
@@ -48,22 +45,41 @@ namespace JudeAptitude.Attempt
             };
         }
 
+
+
         public List<Question> GetQuestionsOnCurrentPage()
         {
             var page = GetCurrentPage();
+
+            if (page.RandomiseQuestionOrder)
+            {
+                var randomGenerator = new Random();
+                return page.Questions.OrderBy(x => randomGenerator.Next()).ToList();
+            }
+
             return page.Questions;
         }
 
 
+
         #region Add Answers
+
+        private Question GetQuestion(Guid questionId)
+        {
+            var question = GetCurrentPage().Questions.FirstOrDefault(q => q.Id == questionId);
+            if (question == null)
+            {
+                throw new InvalidOperationException($"Question {questionId} not found on Page.");
+            }
+
+            return question;
+        }
 
         public void AddAnswer(Guid questionId, string givenAnswer)
         {
-            var question = Exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
-            if (question == null)
-                throw new InvalidOperationException("Question not found in exam.");
+            var question = GetQuestion(questionId);
 
-            Answers.RemoveAll(a => a.QuestionId == questionId);
+            Answers.RemoveAll(a => a.Question.Id == questionId);
 
             var givenAnswers = new List<string>
             {
@@ -72,31 +88,27 @@ namespace JudeAptitude.Attempt
 
             Answers.Add(new Answer
             {
-                QuestionId = questionId,
+                Question = question,
                 GivenAnswers = givenAnswers
             });
         }
 
         public void AddAnswer(Guid questionId, List<string> selectedAnswers)
         {
-            var question = Exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
-            if (question == null)
-                throw new InvalidOperationException("Question not found.");
+            var question = GetQuestion(questionId);
 
-            Answers.RemoveAll(a => a.QuestionId == questionId);
+            Answers.RemoveAll(a => a.Question.Id == questionId);
 
             Answers.Add(new Answer
             {
-                QuestionId = questionId,
+                Question = question,
                 GivenAnswers = selectedAnswers
             });
         }
 
         public void AddAnswer(Guid questionId, int sliderValue)
         {
-            var question = Exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
-            if (question == null)
-                throw new InvalidOperationException("Question not found.");
+            var question = GetQuestion(questionId);
 
             if (question is SliderQuestion sliderQuestion)
             {
@@ -108,10 +120,10 @@ namespace JudeAptitude.Attempt
                 throw new InvalidOperationException("Question is not a slider question.");
             }
 
-            Answers.RemoveAll(a => a.QuestionId == questionId);
+            Answers.RemoveAll(a => a.Question.Id == questionId);
             Answers.Add(new Answer
             {
-                QuestionId = questionId,
+                Question = question,
                 GivenNumber = sliderValue
             });
         }
@@ -127,38 +139,44 @@ namespace JudeAptitude.Attempt
 
             if (!Exam.IsMarked)
             {
-                _result.Score = null;
+                _result.Mark = null;
 
                 return _result;
             }
 
-            decimal totalScore = 0;
+            decimal totalMark = 0;
+
+            var allQuestionsCountingTowardsMark = Exam.AllQuestionsCountingTowardsMark();
 
             foreach (var answer in Answers)
             {
-                var question = Exam.AllQuestionsCountingTowardsMark()
-                                   .FirstOrDefault(q => q.Id == answer.QuestionId);
+                var question = allQuestionsCountingTowardsMark.First(q => q.Id == answer.Question.Id);
 
-                decimal questionScore = 0m;
+                decimal questionMark = 0m;
+
+                questionMark = question.MarkingStrategy.Evaluate(mcq, answer);
+
 
                 if (question is MultipleChoiceQuestion mcq && question.MarkingStrategy != null)
                 {
-                    questionScore = question.MarkingStrategy.Evaluate(mcq, answer);
+                    questionMark = question.MarkingStrategy.Evaluate(mcq, answer);
                 }
                 else if (question is FreeTextQuestion ftq && question.MarkingStrategy is FreeTextMarkingStrategy ftStrategy)
                 {
-                    questionScore = ftStrategy.Evaluate(ftq, answer);
+                    questionMark = ftStrategy.Evaluate(ftq, answer);
                 }
                 else if (question is SliderQuestion sq && question.MarkingStrategy is SliderThresholdStrategy sqStrategy)
                 {
-                    questionScore = sqStrategy.Evaluate(sq, answer);
+                    questionMark = sqStrategy.Evaluate(sq, answer);
                 }
 
-                answer.Score = questionScore;
-                totalScore += questionScore;
+                answer.Mark = questionMark;
+                totalMark += questionMark;
             }
 
-            _result.Score = (int)Math.Round(totalScore);
+            _result.Mark = (int)Math.Round(totalMark);
+            _result.MaximumPossibleMark = Exam.MaximumPossibleMark();
+            _result.Answers = Answers;
 
             return _result;
         }
@@ -207,7 +225,9 @@ namespace JudeAptitude.Attempt
         public DateTime StartedDate { get; set; }
         public DateTime SubmittedDate { get; set; }
 
-        public decimal? Score { get; set; }
+        public decimal? Mark { get; set; }
+        public decimal? MaximumPossibleMark { get; set; }
+
         public List<Answer> Answers { get; set; }
     }
 }

@@ -400,6 +400,11 @@ namespace JudeAptitudeTests
             {
                 return ValidationResult.Valid();
             }
+
+            public override decimal MaximumPossibleMark()
+            {
+                return 1; // Dummy implementation
+            }
         }
 
         private class InvalidDummyQuestion : Question
@@ -408,6 +413,11 @@ namespace JudeAptitudeTests
             public override ValidationResult ValidateQuestion()
             {
                 return ValidationResult.Invalid(new List<string> { "Question is invalid" });
+            }
+
+            public override decimal MaximumPossibleMark()
+            {
+                return 1; // Dummy implementation
             }
         }
     }

@@ -12,6 +12,7 @@ namespace JudeAptitude.ExamBuilder
         public Guid Id { get; }
         public string Prompt { get; set; }
         public string Description { get; set; }
+        public string Hint { get; set; }
 
         public bool CountsTowardsMarking { get; set; }
 
@@ -33,6 +34,8 @@ namespace JudeAptitude.ExamBuilder
         }
 
         public abstract ValidationResult ValidateQuestion();
+
+        public abstract decimal MaximumPossibleMark();
     }
 
     public class MultipleChoiceQuestion : Question
@@ -87,6 +90,23 @@ namespace JudeAptitude.ExamBuilder
 
             return validationErrors.Count == 0 ? ValidationResult.Valid() : ValidationResult.Invalid(validationErrors);
         }
+
+        public override decimal MaximumPossibleMark()
+        {
+            if (CountsTowardsMarking)
+            {
+                if (_markingStrategy is PartialCreditStrategy)
+                {
+                    return CorrectAnswers.Distinct().Count() * 1.0m;
+                }
+                else
+                {
+                    return 1m;
+                }
+            }
+
+            return 0m;
+        }
     }
 
 
@@ -128,6 +148,17 @@ namespace JudeAptitude.ExamBuilder
 
             return validationErrors.Count == 0 ? ValidationResult.Valid() : ValidationResult.Invalid(validationErrors);
         }
+
+
+        public override decimal MaximumPossibleMark()
+        {
+            if (CountsTowardsMarking)
+            {
+                return 1m;
+            }
+
+            return 0m;
+        }
     }
 
 
@@ -155,11 +186,16 @@ namespace JudeAptitude.ExamBuilder
 
             return validationErrors.Count == 0 ? ValidationResult.Valid() : ValidationResult.Invalid(validationErrors);
         }
+
+        public override decimal MaximumPossibleMark()
+        {
+            if (CountsTowardsMarking)
+            {
+                return 1m;
+            }
+
+            return 0m;
+        }
     }
-
-
-
-
-
 
 }

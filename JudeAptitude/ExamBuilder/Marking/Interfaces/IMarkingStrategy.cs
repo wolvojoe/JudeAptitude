@@ -1,4 +1,5 @@
-﻿using JudeAptitude.ExamBuilder;
+﻿using JudeAptitude.Attempt;
+using JudeAptitude.ExamBuilder;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -10,10 +10,17 @@ namespace JudeAptitude.ExamBuilder
     {
         public Guid Id { get; }
         public string Title { get; }
+
+
         public string Description { get; set; }
+        public string Subject { get; set; }
+        public List<string> Tags { get; set; }
+        public DifficultyLevel Difficulty { get; set; }
+
+
         public bool IsMarked { get; }
         public List<Page> Pages { get; set; }
-
+        public decimal _passingMark { get; set; }
 
         public Exam(string title, bool isMarked)
         {
@@ -22,6 +29,10 @@ namespace JudeAptitude.ExamBuilder
             IsMarked = isMarked;
 
             Pages = new List<Page>();
+            Tags = new List<string>();
+            Difficulty = DifficultyLevel.NotSpecified;
+
+            _passingMark = 0.7m;
         }
 
         #region Validation
@@ -96,6 +107,36 @@ namespace JudeAptitude.ExamBuilder
         {
             return Pages.SelectMany(p => p.Questions).ToList();
         }
+
+        public bool SetPassingMark(decimal passingMark)
+        {
+            if (passingMark < 0.0m || passingMark > 1.0m)
+            {
+                return false;
+            }
+
+            _passingMark = passingMark;
+            return true;
+        }
+
+        public decimal PassingMark()
+        {
+            var maxMark = MaximumPossibleMark();
+
+            return maxMark * _passingMark;
+        }
+
+        public decimal MaximumPossibleMark()
+        {
+            decimal maxMark = 0.0m;
+
+            foreach (var page in Pages)
+            {
+                maxMark += page.MaximumPossibleMark();
+            }
+
+            return maxMark;
+        }
     }
 
     public class ValidationResult
@@ -111,5 +152,13 @@ namespace JudeAptitude.ExamBuilder
 
         public static ValidationResult Valid() => new ValidationResult(true, new List<string>());
         public static ValidationResult Invalid(List<string> errors) => new ValidationResult(false, errors);
+    }
+
+    public enum DifficultyLevel
+    {
+        NotSpecified,
+        Easy,
+        Medium,
+        Hard
     }
 }

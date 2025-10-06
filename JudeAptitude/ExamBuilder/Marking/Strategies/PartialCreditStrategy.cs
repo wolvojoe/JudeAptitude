@@ -1,4 +1,5 @@
-﻿using JudeAptitude.ExamBuilder.Marking.Interfaces;
+﻿using JudeAptitude.Attempt;
+using JudeAptitude.ExamBuilder.Marking.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,8 +23,8 @@ namespace JudeAptitude.ExamBuilder.Marking.Strategies
             var correctSet = new HashSet<string>(question.CorrectAnswers, StringComparer.OrdinalIgnoreCase);
             var givenSet = new HashSet<string>(answer.GivenAnswers, StringComparer.OrdinalIgnoreCase);
 
-            int correctCount = givenSet.Count(g => correctSet.Contains(g));
-            int incorrectCount = givenSet.Count(g => !correctSet.Contains(g));
+            int correctCount = givenSet.Count(x => correctSet.Contains(x));
+            int incorrectCount = givenSet.Count(x => !correctSet.Contains(x));
 
             decimal score = correctCount * _pointPerCorrect - incorrectCount * _penaltyPerIncorrect;
 

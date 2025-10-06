@@ -14,11 +14,26 @@ namespace JudeAptitude.ExamBuilder
 
         public List<Question> Questions { get; set; }
 
+        public bool RandomiseQuestionOrder { get; set; }
+
         public Page(string title)
         {
             Title = title;
             Id = Guid.NewGuid();
             Questions = new List<Question>();
+            RandomiseQuestionOrder = false;
+        }
+
+        public decimal MaximumPossibleMark()
+        {
+            decimal maxMark = 0.0m;
+
+            foreach (var question in Questions)
+            {
+                maxMark += question.MaximumPossibleMark();
+            }
+
+            return maxMark;
         }
     }
 }
