@@ -152,25 +152,8 @@ namespace JudeAptitude.Attempt
             {
                 var question = allQuestionsCountingTowardsMark.First(q => q.Id == answer.Question.Id);
 
-                decimal questionMark = 0m;
+                decimal questionMark = answer.Mark();
 
-                questionMark = question.MarkingStrategy.Evaluate(mcq, answer);
-
-
-                if (question is MultipleChoiceQuestion mcq && question.MarkingStrategy != null)
-                {
-                    questionMark = question.MarkingStrategy.Evaluate(mcq, answer);
-                }
-                else if (question is FreeTextQuestion ftq && question.MarkingStrategy is FreeTextMarkingStrategy ftStrategy)
-                {
-                    questionMark = ftStrategy.Evaluate(ftq, answer);
-                }
-                else if (question is SliderQuestion sq && question.MarkingStrategy is SliderThresholdStrategy sqStrategy)
-                {
-                    questionMark = sqStrategy.Evaluate(sq, answer);
-                }
-
-                answer.Mark = questionMark;
                 totalMark += questionMark;
             }
 

@@ -29,7 +29,6 @@ namespace JudeAptitude.ExamBuilder
         public Question()
         {
             Id = Guid.NewGuid();
-            _markingStrategy = new AllOrNothingStrategy();
             CountsTowardsMarking = true;
         }
 
