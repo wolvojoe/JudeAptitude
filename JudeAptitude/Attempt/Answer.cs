@@ -14,7 +14,7 @@ namespace JudeAptitude.Attempt
         public string GivenText { get; set; }
         public int? GivenNumber { get; set; }
 
-        public Answer() 
+        public Answer()
         {
             GivenAnswers = new List<string>();
             GivenText = null;

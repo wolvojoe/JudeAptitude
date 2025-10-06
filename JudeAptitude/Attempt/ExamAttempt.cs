@@ -11,38 +11,43 @@ namespace JudeAptitude.Attempt
 {
     public class ExamAttempt
     {
-        public Guid ExamAttemptId { get; set; }
+        public Guid ExamAttemptId { get; }
 
-        public Exam Exam { get; set; }
 
-        public bool IsCompleted { get; set; }
-        public List<Answer> Answers { get; }
+        private Exam _exam { get; set; }
+        private List<Answer> _answers { get; }
         private ExamResult _result { get; set; }
-
-
         private int _currentPageIndex = 0;
 
         public ExamAttempt(Exam exam)
         {
-            Exam = exam;
+            ValidateExam(exam);
 
-            if (exam.ValidateExam().IsValid == false)
-            {
-                throw new InvalidOperationException("Exam is not valid to attempt. " + string.Join(", ", exam.ValidateExam().Errors));
-            }
+            _exam = exam;
 
             ExamAttemptId = Guid.NewGuid();
-            Answers = new List<Answer>();
 
-            IsCompleted = false;
+            _answers = new List<Answer>();
 
             _result = new ExamResult
             {
                 ExamId = exam.Id,
                 ExamAttemptId = ExamAttemptId,
                 StartedDate = DateTime.UtcNow,
-                Answers = Answers
+                SubmittedDate = null
             };
+        }
+
+        private bool ValidateExam(Exam exam)
+        {
+            var examValidation = exam.ValidateExam();
+
+            if (examValidation.IsValid == false)
+            {
+                throw new InvalidOperationException("Exam is not valid to attempt. " + string.Join(", ", examValidation.Errors));
+            }
+
+            return true;
         }
 
 
@@ -61,10 +66,10 @@ namespace JudeAptitude.Attempt
         }
 
 
-
+        // Add Answers need validation for question types
         #region Add Answers
 
-        private Question GetQuestion(Guid questionId)
+        private Question GetQuestionForCurrentPage(Guid questionId)
         {
             var question = GetCurrentPage().Questions.FirstOrDefault(q => q.Id == questionId);
             if (question == null)
@@ -77,16 +82,16 @@ namespace JudeAptitude.Attempt
 
         public void AddAnswer(Guid questionId, string givenAnswer)
         {
-            var question = GetQuestion(questionId);
+            var question = GetQuestionForCurrentPage(questionId);
 
-            Answers.RemoveAll(a => a.Question.Id == questionId);
+            _answers.RemoveAll(a => a.Question.Id == questionId);
 
             var givenAnswers = new List<string>
             {
                 givenAnswer
             };
 
-            Answers.Add(new Answer
+            _answers.Add(new Answer
             {
                 Question = question,
                 GivenAnswers = givenAnswers
@@ -95,11 +100,11 @@ namespace JudeAptitude.Attempt
 
         public void AddAnswer(Guid questionId, List<string> selectedAnswers)
         {
-            var question = GetQuestion(questionId);
+            var question = GetQuestionForCurrentPage(questionId);
 
-            Answers.RemoveAll(a => a.Question.Id == questionId);
+            _answers.RemoveAll(a => a.Question.Id == questionId);
 
-            Answers.Add(new Answer
+            _answers.Add(new Answer
             {
                 Question = question,
                 GivenAnswers = selectedAnswers
@@ -108,7 +113,7 @@ namespace JudeAptitude.Attempt
 
         public void AddAnswer(Guid questionId, int sliderValue)
         {
-            var question = GetQuestion(questionId);
+            var question = GetQuestionForCurrentPage(questionId);
 
             if (question is SliderQuestion sliderQuestion)
             {
@@ -120,8 +125,8 @@ namespace JudeAptitude.Attempt
                 throw new InvalidOperationException("Question is not a slider question.");
             }
 
-            Answers.RemoveAll(a => a.Question.Id == questionId);
-            Answers.Add(new Answer
+            _answers.RemoveAll(a => a.Question.Id == questionId);
+            _answers.Add(new Answer
             {
                 Question = question,
                 GivenNumber = sliderValue
@@ -132,12 +137,13 @@ namespace JudeAptitude.Attempt
 
 
 
+        #region Marking
+
         public ExamResult Submit()
         {
-            IsCompleted = true;
             _result.SubmittedDate = DateTime.UtcNow;
 
-            if (!Exam.IsMarked)
+            if (!_exam.IsMarked)
             {
                 _result.Mark = null;
 
@@ -146,9 +152,9 @@ namespace JudeAptitude.Attempt
 
             decimal totalMark = 0;
 
-            var allQuestionsCountingTowardsMark = Exam.AllQuestionsCountingTowardsMark();
+            var allQuestionsCountingTowardsMark = _exam.AllQuestionsCountingTowardsMark();
 
-            foreach (var answer in Answers)
+            foreach (var answer in _answers)
             {
                 var question = allQuestionsCountingTowardsMark.First(q => q.Id == answer.Question.Id);
 
@@ -158,27 +164,29 @@ namespace JudeAptitude.Attempt
             }
 
             _result.Mark = (int)Math.Round(totalMark);
-            _result.MaximumPossibleMark = Exam.MaximumPossibleMark();
-            _result.Answers = Answers;
+            _result.MaximumPossibleMark = _exam.MaximumPossibleMark();
 
             return _result;
         }
 
+        private List<QuestionSummary> Generate
+
+        #endregion
 
 
         #region Paging
 
         public Page GetCurrentPage()
         {
-            if (_currentPageIndex < 0 || _currentPageIndex >= Exam.Pages.Count)
+            if (_currentPageIndex < 0 || _currentPageIndex >= _exam.Pages.Count)
                 throw new InvalidOperationException("Current page index is out of range.");
 
-            return Exam.Pages[_currentPageIndex];
+            return _exam.Pages[_currentPageIndex];
         }
 
         public Page NextPage()
         {
-            if (_currentPageIndex < Exam.Pages.Count - 1)
+            if (_currentPageIndex < _exam.Pages.Count - 1)
             {
                 _currentPageIndex++;
                 return GetCurrentPage();
@@ -206,11 +214,21 @@ namespace JudeAptitude.Attempt
         public Guid ExamId { get; set; }
         public Guid ExamAttemptId { get; set; }
         public DateTime StartedDate { get; set; }
-        public DateTime SubmittedDate { get; set; }
+        public DateTime? SubmittedDate { get; set; }
 
         public decimal? Mark { get; set; }
         public decimal? MaximumPossibleMark { get; set; }
 
-        public List<Answer> Answers { get; set; }
+        public List<QuestionSummary> Answers { get; set; }
+    }
+
+    public class  ExamSummary
+    {
+        List<>
+    }
+
+    public class QuestionSummary
+    {
+
     }
 }
