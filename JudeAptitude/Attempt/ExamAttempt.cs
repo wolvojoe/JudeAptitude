@@ -97,8 +97,9 @@ namespace JudeAptitude.Attempt
             _result.SubmittedDate = DateTime.UtcNow;
             _result.Mark = (decimal)Math.Round(totalMark);
             _result.MaximumPossibleMark = _exam.MaximumPossibleMark();
+            _result.PassingMark = _exam.PassingMarkTotal();
             _result.Answers = _answers;
-
+            _result.ExamStatus = (_result.Mark >= _result.PassingMark) ? ExamStatus.Passed : ExamStatus.Failed;
             return _result;
         }
 
@@ -274,8 +275,18 @@ namespace JudeAptitude.Attempt
         public Guid ExamAttemptId { get; set; }
         public DateTime StartedDate { get; set; }
         public DateTime? SubmittedDate { get; set; }
+
+        public ExamStatus ExamStatus { get; set; }
         public decimal? Mark { get; set; }
         public decimal? MaximumPossibleMark { get; set; }
+        public decimal? PassingMark { get; set; }
+
         public List<Answer> Answers { get; set; }
+    }
+
+    public enum ExamStatus
+    {
+        Passed,
+        Failed
     }
 }

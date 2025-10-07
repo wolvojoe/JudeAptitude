@@ -251,6 +251,80 @@ namespace JudeAptitudeTests
             Assert.IsNotNull(prev);
             Assert.AreEqual("Page 1", prev.Title);
         }
+
+
+
+        [Test]
+        public void ExamAttempt_Submit_ReturnsFailedExamResult_WhenBelowPassingMark()
+        {
+            // Arrange: Build a marked exam with a high passing mark
+            var exam = new Exam("Fail Test Exam", isMarked: true);
+            exam.SetPassingMarkPercentage(0.8m); // 80% required to pass
+
+            var mcq = new MultipleChoiceQuestion
+            {
+                Prompt = "Select all even numbers",
+                Options = new List<string> { "1", "2", "3", "4" },
+                CorrectAnswers = new List<string> { "2", "4" },
+                CountsTowardsMarking = true
+            };
+            mcq.SetToAllOrNothingMarking();
+
+            var ftq = new FreeTextQuestion
+            {
+                Prompt = "What is the answer to life, the universe and everything?",
+                ExpectedAnswer = "42",
+                UseExactMatch = true,
+                CountsTowardsMarking = true
+            };
+
+            var slider = new SliderQuestion
+            {
+                Prompt = "Rate from 1 to 5",
+                MinValue = 1,
+                MaxValue = 5,
+                PassingThresholdValue = 3,
+                CountsTowardsMarking = true
+            };
+
+            var page = new Page("Page 1");
+            page.Questions.Add(mcq);
+            page.Questions.Add(ftq);
+            page.Questions.Add(slider);
+            exam.Pages.Add(page);
+
+            var attempt = new ExamAttempt(exam);
+
+            // Act: Add only one correct answer, others incorrect
+            attempt.AddAnswer(new MultipleChoiceAnswer
+            {
+                QuestionId = mcq.Id,
+                GivenAnswers = new List<string> { "1" } // Incorrect
+            });
+            attempt.AddAnswer(new FreeTextAnswer
+            {
+                QuestionId = ftq.Id,
+                GivenText = "wrong answer" // Incorrect
+            });
+            attempt.AddAnswer(new SliderAnswer
+            {
+                QuestionId = slider.Id,
+                GivenNumber = 3 // Assume this is correct
+            });
+
+            var result = attempt.Submit();
+
+            // Assert: ExamResult is failed
+            Assert.IsNotNull(result);
+            Assert.AreEqual(exam.Id, result.ExamId);
+            Assert.AreEqual(attempt.ExamAttemptId, result.ExamAttemptId);
+            Assert.IsNotNull(result.SubmittedDate);
+            Assert.AreEqual(exam.MaximumPossibleMark(), result.MaximumPossibleMark);
+            Assert.IsNotNull(result.Answers);
+            Assert.AreEqual(3, result.Answers.Count);
+            Assert.That(result.Mark, Is.LessThan(result.PassingMark));
+            Assert.AreEqual(ExamStatus.Failed, result.ExamStatus);
+        }
     }
 
 }

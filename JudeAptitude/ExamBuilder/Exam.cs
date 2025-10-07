@@ -20,7 +20,16 @@ namespace JudeAptitude.ExamBuilder
 
         public bool IsMarked { get; }
         public List<Page> Pages { get; set; }
-        public decimal _passingMark { get; set; }
+
+        public decimal PassingMarkPercentage
+        {
+            get
+            {
+                return _passingMarkPercentage;
+            }
+        }
+
+        private decimal _passingMarkPercentage { get; set; }
 
         public Exam(string title, bool isMarked)
         {
@@ -32,7 +41,7 @@ namespace JudeAptitude.ExamBuilder
             Tags = new List<string>();
             Difficulty = DifficultyLevel.NotSpecified;
 
-            _passingMark = 0.7m;
+            _passingMarkPercentage = 0.7m;
         }
 
         #region Validation
@@ -108,22 +117,22 @@ namespace JudeAptitude.ExamBuilder
             return Pages.SelectMany(p => p.Questions).ToList();
         }
 
-        public bool SetPassingMark(decimal passingMark)
+        public bool SetPassingMarkPercentage(decimal passingMark)
         {
             if (passingMark < 0.0m || passingMark > 1.0m)
             {
                 return false;
             }
 
-            _passingMark = passingMark;
+            _passingMarkPercentage = passingMark;
             return true;
         }
 
-        public decimal PassingMark()
+        public decimal PassingMarkTotal()
         {
             var maxMark = MaximumPossibleMark();
 
-            return maxMark * _passingMark;
+            return maxMark * _passingMarkPercentage;
         }
 
         public decimal MaximumPossibleMark()

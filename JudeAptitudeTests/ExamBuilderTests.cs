@@ -465,12 +465,12 @@ namespace JudeAptitudeTests
         }
 
         [Test]
-        public void SetPassingMark_ValidAndInvalidValues()
+        public void SetPassingMarkPercentage_ValidAndInvalidValues()
         {
             var exam = new Exam("Exam", isMarked: true);
-            Assert.IsTrue(exam.SetPassingMark(0.5m));
-            Assert.IsFalse(exam.SetPassingMark(-0.1m));
-            Assert.IsFalse(exam.SetPassingMark(1.1m));
+            Assert.IsTrue(exam.SetPassingMarkPercentage(0.5m));
+            Assert.IsFalse(exam.SetPassingMarkPercentage(-0.1m));
+            Assert.IsFalse(exam.SetPassingMarkPercentage(1.1m));
         }
 
         [Test]
@@ -481,10 +481,10 @@ namespace JudeAptitudeTests
             var q1 = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
             page.Questions.Add(q1);
             exam.Pages.Add(page);
-            exam.SetPassingMark(0.5m);
+            exam.SetPassingMarkPercentage(0.5m);
 
             var expected = exam.MaximumPossibleMark() * 0.5m;
-            Assert.AreEqual(expected, exam.PassingMark());
+            Assert.AreEqual(expected, exam.PassingMarkTotal());
         }
 
         [Test]
