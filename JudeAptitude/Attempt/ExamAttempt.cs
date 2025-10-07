@@ -38,19 +38,9 @@ namespace JudeAptitude.Attempt
             };
         }
 
-        private bool ValidateExam(Exam exam)
-        {
-            var examValidation = exam.ValidateExam();
-
-            if (examValidation.IsValid == false)
-            {
-                throw new InvalidOperationException("Exam is not valid to attempt. " + string.Join(", ", examValidation.Errors));
-            }
-
-            return true;
-        }
 
 
+        #region Public
 
         public List<Question> GetQuestionsOnCurrentPage()
         {
@@ -65,84 +55,24 @@ namespace JudeAptitude.Attempt
             return page.Questions;
         }
 
-
-        // Add Answers need validation for question types
-        #region Add Answers
-
-        private Question GetQuestionForCurrentPage(Guid questionId)
+        public void AddAnswer(Answer selectedAnswer)
         {
-            var question = GetCurrentPage().Questions.FirstOrDefault(q => q.Id == questionId);
-            if (question == null)
+            if (ValidateAnswer(selectedAnswer) == false)
             {
-                throw new InvalidOperationException($"Question {questionId} not found on Page.");
+                throw new InvalidOperationException("Answer is invalid.");
             }
 
-            return question;
+            var question = GetQuestionOnCurrentPage(selectedAnswer.QuestionId);
+
+            _answers.RemoveAll(a => a.QuestionId == selectedAnswer.QuestionId);
+
+            _answers.Add(selectedAnswer);
         }
-
-        public void AddAnswer(Guid questionId, string givenAnswer)
-        {
-            var question = GetQuestionForCurrentPage(questionId);
-
-            _answers.RemoveAll(a => a.Question.Id == questionId);
-
-            var givenAnswers = new List<string>
-            {
-                givenAnswer
-            };
-
-            _answers.Add(new Answer
-            {
-                Question = question,
-                GivenAnswers = givenAnswers
-            });
-        }
-
-        public void AddAnswer(Guid questionId, List<string> selectedAnswers)
-        {
-            var question = GetQuestionForCurrentPage(questionId);
-
-            _answers.RemoveAll(a => a.Question.Id == questionId);
-
-            _answers.Add(new Answer
-            {
-                Question = question,
-                GivenAnswers = selectedAnswers
-            });
-        }
-
-        public void AddAnswer(Guid questionId, int sliderValue)
-        {
-            var question = GetQuestionForCurrentPage(questionId);
-
-            if (question is SliderQuestion sliderQuestion)
-            {
-                if (sliderValue < sliderQuestion.MinValue || sliderValue > sliderQuestion.MaxValue)
-                    throw new ArgumentOutOfRangeException(nameof(sliderValue), $"Value must be between {sliderQuestion.MinValue} and {sliderQuestion.MaxValue}.");
-            }
-            else
-            {
-                throw new InvalidOperationException("Question is not a slider question.");
-            }
-
-            _answers.RemoveAll(a => a.Question.Id == questionId);
-            _answers.Add(new Answer
-            {
-                Question = question,
-                GivenNumber = sliderValue
-            });
-        }
-
-        #endregion
-
-
 
         #region Marking
 
         public ExamResult Submit()
         {
-            _result.SubmittedDate = DateTime.UtcNow;
-
             if (!_exam.IsMarked)
             {
                 _result.Mark = null;
@@ -156,23 +86,81 @@ namespace JudeAptitude.Attempt
 
             foreach (var answer in _answers)
             {
-                var question = allQuestionsCountingTowardsMark.First(q => q.Id == answer.Question.Id);
+                var question = allQuestionsCountingTowardsMark.First(q => q.Id == answer.QuestionId);
 
-                decimal questionMark = answer.Mark();
+                decimal questionMark = GetAnswerMark(question, answer);
 
+                answer.Mark = questionMark;
                 totalMark += questionMark;
             }
 
+            _result.SubmittedDate = DateTime.UtcNow;
             _result.Mark = (int)Math.Round(totalMark);
             _result.MaximumPossibleMark = _exam.MaximumPossibleMark();
+            _result.Answers = _answers;
 
             return _result;
         }
 
-        private List<QuestionSummary> Generate
+        public decimal GetAnswerMark(Question question, Answer answer)
+        {
+            if (question == null || question.MarkingStrategy == null)
+                return 0m;
+
+            switch (question)
+            {
+                case MultipleChoiceQuestion mcq:
+                    return question.MarkingStrategy.Evaluate(mcq, answer);
+                case FreeTextQuestion ftq:
+                    return question.MarkingStrategy.Evaluate(ftq, answer);
+                case SliderQuestion sq:
+                    return question.MarkingStrategy.Evaluate(sq, answer);
+                default:
+                    return 0m;
+            }
+        }
+
+        public Answer GetCurrentAnswerForQuestion(Guid questionId)
+        {
+            return _answers.FirstOrDefault(a => a.QuestionId == questionId);
+        }
+
+        public Answer GetCorrectAnswerForQuestion(Guid questionId)
+        {
+            var question = _exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
+            if (question == null)
+                return null;
+
+            if (question is MultipleChoiceQuestion mcq)
+            {
+                return new MultipleChoiceAnswer
+                {
+                    QuestionId = questionId,
+                    GivenAnswers = mcq.CorrectAnswers != null ? new List<string>(mcq.CorrectAnswers) : new List<string>()
+                };
+            }
+            else if (question is FreeTextQuestion ftq)
+            {
+                return new FreeTextAnswer
+                {
+                    QuestionId = questionId,
+                    GivenText = ftq.ExpectedAnswer
+                };
+            }
+            else if (question is SliderQuestion sq)
+            {
+                int correctValue = (sq.MinValue + sq.MaxValue) / 2;
+                return new SliderAnswer
+                {
+                    QuestionId = questionId,
+                    GivenNumber = correctValue
+                };
+            }
+
+            return null;
+        }
 
         #endregion
-
 
         #region Paging
 
@@ -206,6 +194,77 @@ namespace JudeAptitude.Attempt
 
         #endregion
 
+        #endregion
+
+
+        private Question GetQuestionOnCurrentPage(Guid questionId)
+        {
+            var question = GetCurrentPage().Questions.FirstOrDefault(q => q.Id == questionId);
+            if (question == null)
+            {
+                throw new InvalidOperationException($"Question {questionId} not found on Page.");
+            }
+
+            return question;
+        }
+
+
+        private bool ValidateExam(Exam exam)
+        {
+            var examValidation = exam.ValidateExam();
+
+            if (examValidation.IsValid == false)
+            {
+                throw new InvalidOperationException("Exam is not valid to attempt. " + string.Join(", ", examValidation.Errors));
+            }
+
+            return true;
+        }
+
+
+        private bool ValidateAnswer(Answer selectedAnswer)
+        {
+            var question = GetQuestionOnCurrentPage(selectedAnswer.QuestionId);
+
+            if (question == null || selectedAnswer == null)
+                return false;
+
+            if (question is MultipleChoiceQuestion)
+            {
+                if (!(selectedAnswer is MultipleChoiceAnswer mcAnswer))
+                    return false;
+
+                if (mcAnswer.GivenAnswers == null || mcAnswer.GivenAnswers.Count == 0)
+                    return false;
+
+                var validOptions = ((MultipleChoiceQuestion)question).Options;
+                if (mcAnswer.GivenAnswers.Any(a => !validOptions.Contains(a)))
+                    return false;
+            }
+            else if (question is FreeTextQuestion)
+            {
+                if (!(selectedAnswer is FreeTextAnswer ftAnswer))
+                    return false;
+
+                if (string.IsNullOrWhiteSpace(ftAnswer.GivenText))
+                    return false;
+            }
+            else if (question is SliderQuestion sliderQuestion)
+            {
+                if (!(selectedAnswer is SliderAnswer sAnswer))
+                    return false;
+
+                if (sAnswer.GivenNumber < sliderQuestion.MinValue || sAnswer.GivenNumber > sliderQuestion.MaxValue)
+                    return false;
+            }
+            else
+            {
+                return false;
+            }
+
+            return true;
+        }
+
 
     }
 
@@ -215,20 +274,8 @@ namespace JudeAptitude.Attempt
         public Guid ExamAttemptId { get; set; }
         public DateTime StartedDate { get; set; }
         public DateTime? SubmittedDate { get; set; }
-
         public decimal? Mark { get; set; }
         public decimal? MaximumPossibleMark { get; set; }
-
-        public List<QuestionSummary> Answers { get; set; }
-    }
-
-    public class  ExamSummary
-    {
-        List<>
-    }
-
-    public class QuestionSummary
-    {
-
+        public List<Answer> Answers { get; set; }
     }
 }
