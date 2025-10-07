@@ -127,6 +127,7 @@ namespace JudeAptitudeTests
                 Prompt = "Rate from 1 to 5",
                 MinValue = 1,
                 MaxValue = 5,
+                PassingThresholdValue = 3,
                 CountsTowardsMarking = true
             };
 
