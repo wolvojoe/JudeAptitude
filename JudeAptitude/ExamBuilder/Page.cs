@@ -1,0 +1,39 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace JudeAptitude.ExamBuilder
+{
+    public class Page
+    {
+        public Guid Id { get; }
+
+        public string Title { get; }
+
+        public string Description { get; set; }
+
+        public List<Question> Questions { get; set; }
+
+        public bool RandomiseQuestionOrder { get; set; }
+
+        public Page(string title)
+        {
+            Title = title;
+            Id = Guid.NewGuid();
+            Questions = new List<Question>();
+            RandomiseQuestionOrder = false;
+        }
+
+        public decimal MaximumPossibleMark()
+        {
+            decimal maxMark = 0.0m;
+
+            foreach (var question in Questions)
+            {
+                maxMark += question.MaximumPossibleMark();
+            }
+
+            return maxMark;
+        }
+    }
+}
