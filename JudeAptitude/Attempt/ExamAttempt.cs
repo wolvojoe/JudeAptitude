@@ -80,7 +80,7 @@ namespace JudeAptitude.Attempt
                 return _result;
             }
 
-            decimal totalMark = 0;
+            var totalMark = 0m;
 
             var allQuestionsCountingTowardsMark = _exam.AllQuestionsCountingTowardsMark();
 
@@ -88,14 +88,14 @@ namespace JudeAptitude.Attempt
             {
                 var question = allQuestionsCountingTowardsMark.First(q => q.Id == answer.QuestionId);
 
-                decimal questionMark = GetAnswerMark(question, answer);
+                var questionMark = GetAnswerMark(question, answer);
 
                 answer.Mark = questionMark;
                 totalMark += questionMark;
             }
 
             _result.SubmittedDate = DateTime.UtcNow;
-            _result.Mark = (int)Math.Round(totalMark);
+            _result.Mark = (decimal)Math.Round(totalMark);
             _result.MaximumPossibleMark = _exam.MaximumPossibleMark();
             _result.Answers = _answers;
 
@@ -110,11 +110,11 @@ namespace JudeAptitude.Attempt
             switch (question)
             {
                 case MultipleChoiceQuestion mcq:
-                    return question.MarkingStrategy.Evaluate(mcq, answer);
+                    return question.MarkingStrategy.Evaluate(mcq, (MultipleChoiceAnswer)answer);
                 case FreeTextQuestion ftq:
-                    return question.MarkingStrategy.Evaluate(ftq, answer);
+                    return question.MarkingStrategy.Evaluate(ftq, (FreeTextAnswer)answer);
                 case SliderQuestion sq:
-                    return question.MarkingStrategy.Evaluate(sq, answer);
+                    return question.MarkingStrategy.Evaluate(sq, (SliderAnswer)answer);
                 default:
                     return 0m;
             }

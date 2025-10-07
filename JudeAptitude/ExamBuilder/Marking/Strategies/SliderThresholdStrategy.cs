@@ -9,35 +9,30 @@ namespace JudeAptitude.ExamBuilder.Marking.Strategies
 {
     public class SliderThresholdStrategy : IMarkingStrategy
     {
-        private int _threshold;
-
-        private bool _isGreaterThan;
-
-        public SliderThresholdStrategy(int minimumThreshold = 7, bool isGreaterThan = true)
+        public SliderThresholdStrategy()
         {
-            _threshold = minimumThreshold;
-            _isGreaterThan = isGreaterThan;
+
         }
 
-        public decimal Evaluate(MultipleChoiceQuestion question, Answer answer)
+        public decimal Evaluate(MultipleChoiceQuestion question, MultipleChoiceAnswer answer)
         {
             throw new NotImplementedException("This strategy is not for multiple choice questions.");
         }
 
-        public decimal Evaluate(FreeTextQuestion question, Answer answer)
+        public decimal Evaluate(FreeTextQuestion question, FreeTextAnswer answer)
         {
             throw new NotImplementedException("This strategy is not for free text questions.");
         }
 
-        public decimal Evaluate(SliderQuestion question, Answer answer)
+        public decimal Evaluate(SliderQuestion question, SliderAnswer answer)
         {
             var answerValue = answer.GivenNumber;
 
-            if (_isGreaterThan && answerValue >= _threshold)
+            if (question.ReversePassingThreshold == false && answer.GivenNumber >= question.PassingThresholdValue)
             {
                 return 1.0m;
             }
-            else if (_isGreaterThan == false && answerValue <= _threshold)
+            else if (question.ReversePassingThreshold == true && answer.GivenNumber <= question.PassingThresholdValue)
             {
                 return 1.0m;
             }

@@ -18,7 +18,7 @@ namespace JudeAptitude.ExamBuilder.Marking.Strategies
             _penaltyPerIncorrect = penaltyPerIncorrect;
         }
 
-        public decimal Evaluate(MultipleChoiceQuestion question, Answer answer)
+        public decimal Evaluate(MultipleChoiceQuestion question, MultipleChoiceAnswer answer)
         {
             var correctSet = new HashSet<string>(question.CorrectAnswers, StringComparer.OrdinalIgnoreCase);
             var givenSet = new HashSet<string>(answer.GivenAnswers, StringComparer.OrdinalIgnoreCase);
@@ -31,12 +31,12 @@ namespace JudeAptitude.ExamBuilder.Marking.Strategies
             return Math.Max(score, 0.0m);
         }
 
-        public decimal Evaluate(FreeTextQuestion question, Answer answer)
+        public decimal Evaluate(FreeTextQuestion question, FreeTextAnswer answer)
         {
             throw new NotImplementedException("This strategy is not for free text questions.");
         }
 
-        public decimal Evaluate(SliderQuestion question, Answer answer)
+        public decimal Evaluate(SliderQuestion question, SliderAnswer answer)
         {
             throw new NotImplementedException("This strategy is not for slider questions.");
         }

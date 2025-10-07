@@ -9,12 +9,12 @@ namespace JudeAptitude.ExamBuilder.Marking.Strategies
 {
     public class FreeTextMarkingStrategy : IMarkingStrategy
     {
-        public decimal Evaluate(MultipleChoiceQuestion question, Answer answer)
+        public decimal Evaluate(MultipleChoiceQuestion question, MultipleChoiceAnswer answer)
         {
             throw new NotImplementedException("This strategy is not for multiple choice questions.");
         }
 
-        public decimal Evaluate(FreeTextQuestion question, Answer answer)
+        public decimal Evaluate(FreeTextQuestion question, FreeTextAnswer answer)
         {
             var response = answer.GivenText?.Trim().ToLower() ?? "";
 
@@ -30,7 +30,7 @@ namespace JudeAptitude.ExamBuilder.Marking.Strategies
             return matchedKeywords > 0m ? 1.0m : 0.0m;
         }
 
-        public decimal Evaluate(SliderQuestion question, Answer answer)
+        public decimal Evaluate(SliderQuestion question, SliderAnswer answer)
         {
             throw new NotImplementedException("This strategy is not for slider questions.");
         }

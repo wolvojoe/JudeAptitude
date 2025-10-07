@@ -16,16 +16,10 @@ namespace JudeAptitude.ExamBuilder
 
         public bool CountsTowardsMarking { get; set; }
 
-        private IMarkingStrategy _markingStrategy { get; set; }
-        public IMarkingStrategy MarkingStrategy 
-        { 
-            get
-            {
-                return _markingStrategy;
-            }
-        }
+        protected IMarkingStrategy _markingStrategy;
+        public IMarkingStrategy MarkingStrategy => _markingStrategy;
 
-        
+
         public Question()
         {
             Id = Guid.NewGuid();
@@ -39,7 +33,6 @@ namespace JudeAptitude.ExamBuilder
 
     public class MultipleChoiceQuestion : Question
     {
-        private IMarkingStrategy _markingStrategy { get; set; }
 
 
         public List<string> Options { get; set; }
@@ -50,6 +43,7 @@ namespace JudeAptitude.ExamBuilder
         {
             Options = new List<string>();
             CorrectAnswers = new List<string>();
+            SetToAllOrNothingMarking();
         }
 
         public void SetToAllOrNothingMarking()
@@ -111,9 +105,6 @@ namespace JudeAptitude.ExamBuilder
 
     public class FreeTextQuestion : Question
     {
-        private IMarkingStrategy _markingStrategy { get; set; }
-
-
         public string ExpectedAnswer { get; set; }
 
         public List<string> Keywords { get; set; }
@@ -164,10 +155,11 @@ namespace JudeAptitude.ExamBuilder
 
     public class SliderQuestion : Question
     {
-        private IMarkingStrategy _markingStrategy { get; set; }
-
         public int MinValue { get; set; } = 0;
         public int MaxValue { get; set; } = 10;
+
+        public bool ReversePassingThreshold { get; set; } = false;
+        public int PassingThresholdValue { get; set; } = 7;
 
         public SliderQuestion()
         {
@@ -181,6 +173,11 @@ namespace JudeAptitude.ExamBuilder
             if (MinValue >= MaxValue)
             {
                 validationErrors.Add($"A Slider question needs a Min Value less than the Max Value {Id}");
+            }
+
+            if (PassingThresholdValue > MaxValue || PassingThresholdValue < MinValue)
+            {
+                validationErrors.Add($"A Slider question needs a valid Passing Threshold {Id}");
             }
 
             return validationErrors.Count == 0 ? ValidationResult.Valid() : ValidationResult.Invalid(validationErrors);
