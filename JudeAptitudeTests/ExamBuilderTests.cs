@@ -385,7 +385,124 @@ namespace JudeAptitudeTests
 
 
 
+        [Test]
+        public void Exam_Constructor_InitializesProperties()
+        {
+            var exam = new Exam("Sample Exam", isMarked: true);
+            Assert.AreEqual("Sample Exam", exam.Title);
+            Assert.IsTrue(exam.IsMarked);
+            Assert.IsNotNull(exam.Pages);
+            Assert.IsNotNull(exam.Tags);
+            Assert.AreEqual(DifficultyLevel.NotSpecified, exam.Difficulty);
+        }
 
+        [Test]
+        public void ValidateExam_ReturnsValid_WhenExamIsValid()
+        {
+            var exam = new Exam("Valid Exam", isMarked: true);
+            var page = new Page("Page 1");
+            var question = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
+            page.Questions.Add(question);
+            exam.Pages.Add(page);
+
+            var result = exam.ValidateExam();
+            Assert.IsTrue(result.IsValid);
+        }
+
+        [Test]
+        public void ValidateExam_ReturnsInvalid_WhenNoPages()
+        {
+            var exam = new Exam("No Pages", isMarked: false);
+            var result = exam.ValidateExam();
+            Assert.IsFalse(result.IsValid);
+            Assert.That(result.Errors, Does.Contain("Exam has no Pages"));
+        }
+
+        [Test]
+        public void ValidateExam_ReturnsInvalid_WhenNoQuestions()
+        {
+            var exam = new Exam("No Questions", isMarked: false);
+            exam.Pages.Add(new Page("Page 1"));
+            var result = exam.ValidateExam();
+            Assert.IsFalse(result.IsValid);
+            Assert.That(result.Errors, Does.Contain("Exam has no Questions"));
+        }
+
+        [Test]
+        public void AllQuestions_ReturnsAllQuestions()
+        {
+            var exam = new Exam("Exam", isMarked: false);
+            var page1 = new Page("Page 1");
+            var page2 = new Page("Page 2");
+            var q1 = new DummyQuestion { Prompt = "Q1" };
+            var q2 = new DummyQuestion { Prompt = "Q2" };
+            page1.Questions.Add(q1);
+            page2.Questions.Add(q2);
+            exam.Pages.Add(page1);
+            exam.Pages.Add(page2);
+
+            var allQuestions = exam.AllQuestions();
+            Assert.AreEqual(2, allQuestions.Count);
+            Assert.Contains(q1, allQuestions);
+            Assert.Contains(q2, allQuestions);
+        }
+
+        [Test]
+        public void AllQuestionsCountingTowardsMark_ReturnsOnlyMarkedQuestions()
+        {
+            var exam = new Exam("Exam", isMarked: true);
+            var page = new Page("Page 1");
+            var q1 = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
+            var q2 = new DummyQuestion { Prompt = "Q2", CountsTowardsMarking = false };
+            page.Questions.Add(q1);
+            page.Questions.Add(q2);
+            exam.Pages.Add(page);
+
+            var markedQuestions = exam.AllQuestionsCountingTowardsMark();
+            Assert.AreEqual(1, markedQuestions.Count);
+            Assert.Contains(q1, markedQuestions);
+            Assert.IsFalse(markedQuestions.Contains(q2));
+        }
+
+        [Test]
+        public void SetPassingMark_ValidAndInvalidValues()
+        {
+            var exam = new Exam("Exam", isMarked: true);
+            Assert.IsTrue(exam.SetPassingMark(0.5m));
+            Assert.IsFalse(exam.SetPassingMark(-0.1m));
+            Assert.IsFalse(exam.SetPassingMark(1.1m));
+        }
+
+        [Test]
+        public void PassingMark_ReturnsExpectedValue()
+        {
+            var exam = new Exam("Exam", isMarked: true);
+            var page = new Page("Page 1");
+            var q1 = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
+            page.Questions.Add(q1);
+            exam.Pages.Add(page);
+            exam.SetPassingMark(0.5m);
+
+            var expected = exam.MaximumPossibleMark() * 0.5m;
+            Assert.AreEqual(expected, exam.PassingMark());
+        }
+
+        [Test]
+        public void MaximumPossibleMark_SumsAllPages()
+        {
+            var exam = new Exam("Exam", isMarked: true);
+            var page1 = new Page("Page 1");
+            var page2 = new Page("Page 2");
+            var q1 = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
+            var q2 = new DummyQuestion { Prompt = "Q2", CountsTowardsMarking = true };
+            page1.Questions.Add(q1);
+            page2.Questions.Add(q2);
+            exam.Pages.Add(page1);
+            exam.Pages.Add(page2);
+
+            var expected = q1.MaximumPossibleMark() + q2.MaximumPossibleMark();
+            Assert.AreEqual(expected, exam.MaximumPossibleMark());
+        }
 
 
 
