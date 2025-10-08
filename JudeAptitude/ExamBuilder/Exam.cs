@@ -19,6 +19,8 @@ namespace JudeAptitude.ExamBuilder
 
 
         public bool IsMarked { get; }
+        public bool RandomisePageOrder { get; set; }
+
         public List<Page> Pages { get; set; }
 
         public decimal PassingMarkPercentage
@@ -42,6 +44,7 @@ namespace JudeAptitude.ExamBuilder
             Difficulty = DifficultyLevel.NotSpecified;
 
             _passingMarkPercentage = 0.7m;
+            RandomisePageOrder = false;
         }
 
         #region Validation

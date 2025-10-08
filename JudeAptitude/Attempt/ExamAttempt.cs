@@ -19,6 +19,11 @@ namespace JudeAptitude.Attempt
         private ExamResult _result { get; set; }
         private int _currentPageIndex = 0;
 
+        private Dictionary<Guid, int> _pageOrder { get; set; }
+
+        private Dictionary<Guid, int> _questionOrder { get; set; }
+
+        
         public ExamAttempt(Exam exam)
         {
             ValidateExam(exam);
@@ -36,26 +41,22 @@ namespace JudeAptitude.Attempt
                 StartedDate = DateTime.UtcNow,
                 SubmittedDate = null
             };
+
+            SetQuestionOrder();
         }
 
 
 
         #region Public
 
-        public List<Question> GetQuestionsOnCurrentPage()
-        {
-            var page = GetCurrentPage();
 
-            if (page.RandomiseQuestionOrder)
-            {
-                var randomGenerator = new Random();
-                return page.Questions.OrderBy(x => randomGenerator.Next()).ToList();
-            }
 
-            return page.Questions;
-        }
-
-        public void AddAnswer(Answer selectedAnswer)
+        /// <summary>
+        /// Submits an Answer for a Question on the current Page
+        /// </summary>
+        /// <param name="selectedAnswer"></param>
+        /// <exception cref="InvalidOperationException"></exception>
+        public void SubmitAnswerForQuestionOnCurrentPage(Answer selectedAnswer)
         {
             if (ValidateAnswer(selectedAnswer) == false)
             {
@@ -69,10 +70,18 @@ namespace JudeAptitude.Attempt
             _answers.Add(selectedAnswer);
         }
 
-        #region Marking
 
-        public ExamResult Submit()
+        /// <summary>
+        /// Submits the Exam for Marking and returns an Exam Result
+        /// </summary>
+        /// <returns></returns>
+        public ExamResult SubmitExamAttempt()
         {
+            if (_result.SubmittedDate != null)
+            {
+                throw new InvalidOperationException("Exam Attempt has already been Submitted.");
+            }
+
             if (!_exam.IsMarked)
             {
                 _result.Mark = null;
@@ -103,29 +112,33 @@ namespace JudeAptitude.Attempt
             return _result;
         }
 
-        public decimal GetAnswerMark(Question question, Answer answer)
-        {
-            if (question == null || question.MarkingStrategy == null)
-                return 0m;
 
-            switch (question)
-            {
-                case MultipleChoiceQuestion mcq:
-                    return question.MarkingStrategy.Evaluate(mcq, (MultipleChoiceAnswer)answer);
-                case FreeTextQuestion ftq:
-                    return question.MarkingStrategy.Evaluate(ftq, (FreeTextAnswer)answer);
-                case SliderQuestion sq:
-                    return question.MarkingStrategy.Evaluate(sq, (SliderAnswer)answer);
-                default:
-                    return 0m;
-            }
+        /// <summary>
+        /// Gets all Questions on the Exam Attempts current Page, ordered as specified by the Exam
+        /// </summary>
+        /// <returns></returns>
+        public List<QuestionView> GetAllQuestionsOnCurrentPage()
+        {
+            var page = GetCurrentPageObject();
+
+            return page.Questions.OrderBy(x => _questionOrder[x.Id]).Select(x => ToQuestionView(x)).ToList();
         }
 
+        /// <summary>
+        /// Gets the currently submitted Answer for a Question
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <returns></returns>
         public Answer GetCurrentAnswerForQuestion(Guid questionId)
         {
             return _answers.FirstOrDefault(a => a.QuestionId == questionId);
         }
 
+        /// <summary>
+        /// Gets the correct Answer for a Question
+        /// </summary>
+        /// <param name="questionId"></param>
+        /// <returns></returns>
         public Answer GetCorrectAnswerForQuestion(Guid questionId)
         {
             var question = _exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
@@ -161,11 +174,54 @@ namespace JudeAptitude.Attempt
             return null;
         }
 
+
+
+
+        /// <summary>
+        /// Gets the current Page details
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public PageView GetCurrentPage()
+        {
+            if (_currentPageIndex < 0 || _currentPageIndex >= _exam.Pages.Count)
+                throw new InvalidOperationException("Current page index is out of range.");
+
+            return ConvertPageToPageView(_exam.Pages[_currentPageIndex]);
+        }
+
+        /// <summary>
+        /// Moves the Exam Attempt to the next Page
+        /// </summary>
+        public void NavigateToNextPage()
+        {
+            if (_currentPageIndex < _exam.Pages.Count - 1)
+            {
+                _currentPageIndex++;
+            }
+        }
+
+        /// <summary>
+        /// Moves the Exam Attempt to the previous Page
+        /// </summary>
+        public void NavigateToPreviousPage()
+        {
+            if (_currentPageIndex > 0)
+            {
+                _currentPageIndex--;
+            }
+        }
+
+
         #endregion
 
-        #region Paging
 
-        public Page GetCurrentPage()
+
+
+
+        #region Private Methods
+
+        private Page GetCurrentPageObject()
         {
             if (_currentPageIndex < 0 || _currentPageIndex >= _exam.Pages.Count)
                 throw new InvalidOperationException("Current page index is out of range.");
@@ -173,34 +229,90 @@ namespace JudeAptitude.Attempt
             return _exam.Pages[_currentPageIndex];
         }
 
-        public Page NextPage()
+
+        private PageView ConvertPageToPageView(Page selectedPage)
         {
-            if (_currentPageIndex < _exam.Pages.Count - 1)
-            {
-                _currentPageIndex++;
-                return GetCurrentPage();
-            }
-            return null;
+            return new PageView(selectedPage.Title, selectedPage.Description, selectedPage.Questions.Count);
         }
 
-        public Page PreviousPage()
+        private void SetQuestionOrder()
         {
-            if (_currentPageIndex > 0)
+            foreach (var page in _exam.Pages)
             {
-                _currentPageIndex--;
-                return GetCurrentPage();
+                if (page.RandomiseQuestionOrder)
+                {
+                    var randomGenerator = new Random();
+                    var pageQuestionsRandomOrder = page.Questions.OrderBy(x => randomGenerator.Next());
+                    var orderCount = 1;
+
+                    foreach (var question in page.Questions)
+                    {
+                        _questionOrder.Add(question.Id, orderCount);
+                    }
+                }
+                else
+                {
+                    foreach (var question in page.Questions)
+                    {
+                        _questionOrder.Add(question.Id, question.Order);
+                    }
+                }
             }
-            return null;
         }
 
-        #endregion
+        private void SetPageOrder()
+        {
+            foreach (var page in _exam.Pages)
+            {
+                if (_exam.RandomisePageOrder)
+                {
 
-        #endregion
+                }
 
+
+                if (page.RandomiseQuestionOrder)
+                {
+                    var randomGenerator = new Random();
+                    var pageQuestionsRandomOrder = page.Questions.OrderBy(x => randomGenerator.Next());
+                    var orderCount = 1;
+
+                    foreach (var question in page.Questions)
+                    {
+                        _questionOrder.Add(question.Id, orderCount);
+                    }
+                }
+                else
+                {
+                    foreach (var question in page.Questions)
+                    {
+                        _questionOrder.Add(question.Id, question.Order);
+                    }
+                }
+            }
+        }
+
+
+        private decimal GetAnswerMark(Question question, Answer answer)
+        {
+            if (question == null || question.MarkingStrategy == null)
+                return 0m;
+
+            switch (question)
+            {
+                case MultipleChoiceQuestion mcq:
+                    return question.MarkingStrategy.Evaluate(mcq, (MultipleChoiceAnswer)answer);
+                case FreeTextQuestion ftq:
+                    return question.MarkingStrategy.Evaluate(ftq, (FreeTextAnswer)answer);
+                case SliderQuestion sq:
+                    return question.MarkingStrategy.Evaluate(sq, (SliderAnswer)answer);
+                default:
+                    return 0m;
+            }
+        }
 
         private Question GetQuestionOnCurrentPage(Guid questionId)
         {
-            var question = GetCurrentPage().Questions.FirstOrDefault(q => q.Id == questionId);
+            var question = GetCurrentPageObject().Questions.FirstOrDefault(q => q.Id == questionId);
             if (question == null)
             {
                 throw new InvalidOperationException($"Question {questionId} not found on Page.");
@@ -267,6 +379,65 @@ namespace JudeAptitude.Attempt
         }
 
 
+
+        private QuestionView ToQuestionView(Question question)
+        {
+            if (question == null)
+                return null;
+
+            QuestionView view = null;
+
+            if (question is MultipleChoiceQuestion mcq)
+            {
+                view = new MultipleChoiceQuestionView
+                {
+                    CorrectAnswers = mcq.CorrectAnswers != null ? new List<string>(mcq.CorrectAnswers) : new List<string>(),
+                    Options = mcq.Options != null ? new List<string>(mcq.Options) : new List<string>()
+                };
+            }
+            else if (question is FreeTextQuestion ftq)
+            {
+                view = new FreeTextQuestionView
+                {
+                    ExpectedAnswer = ftq.ExpectedAnswer,
+                    Keywords = ftq.Keywords != null ? new List<string>(ftq.Keywords) : new List<string>()
+                };
+            }
+            else if (question is SliderQuestion sq)
+            {
+                view = new SliderQuestionView
+                {
+                    MinValue = sq.MinValue,
+                    MaxValue = sq.MaxValue,
+
+                    PassingThresholdValue = sq.GetType().GetProperty("PassingThresholdValue") != null
+                        ? (int)sq.GetType().GetProperty("PassingThresholdValue").GetValue(sq)
+                        : 0,
+                    ReversePassingThreshold = sq.GetType().GetProperty("ReversePassingThreshold") != null
+                        ? (bool)sq.GetType().GetProperty("ReversePassingThreshold").GetValue(sq)
+                        : false
+                };
+            }
+            else
+            {
+                return null;
+            }
+
+            view.QuestionId = question.Id;
+            view.Prompt = question.Prompt;
+            view.Description = question.Description;
+            view.Hint = question.Hint;
+            view.Feedback = question.Feedback;
+            view.CountsTowardsMarking = question.CountsTowardsMarking;
+
+            return view;
+        }
+
+
+        #endregion
+
+
+
     }
 
     public class ExamResult
@@ -288,5 +459,54 @@ namespace JudeAptitude.Attempt
     {
         Passed,
         Failed
+    }
+
+
+    public class PageView
+    {
+        public string Title { get; }
+        public string Description { get; }
+        public int QuestionsCount { get; }
+
+        public PageView(string title, string description, int questionCount)
+        {
+            Title = title;
+            Description = description;
+            QuestionsCount = questionCount;
+        }
+    }
+
+    public abstract class QuestionView
+    {
+        public Guid QuestionId { get; set; }
+        public string Prompt { get; set; }
+        public string Description { get; set; }
+        public string Hint { get; set; }
+        public string Feedback { get; set; }
+        public bool CountsTowardsMarking { get; set; }
+
+    }
+
+    public class MultipleChoiceQuestionView : QuestionView
+    {
+        public List<string> CorrectAnswers { get; set; }
+
+        public List<string> Options { get; set; }
+    }
+
+    public class FreeTextQuestionView : QuestionView
+    {
+        public string ExpectedAnswer { get; set; }
+
+        public List<string> Keywords { get; set; }
+    }
+
+    public class SliderQuestionView : QuestionView
+    {
+        public int MinValue { get; set; }
+        public int MaxValue { get; set; }
+
+        public bool ReversePassingThreshold { get; set; }
+        public int PassingThresholdValue { get; set; }
     }
 }
