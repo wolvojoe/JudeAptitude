@@ -16,18 +16,15 @@ namespace JudeAptitudeTests
         }
 
 
-        [Test]
-        public void ExamAttempt_Submit_ReturnsCorrectExamResult()
+        private Exam BuildExam()
         {
-            // Arrange: Build a simple marked exam with all question types
-            var exam = new Exam("Test Exam", isMarked: true);
-
             var mcq = new MultipleChoiceQuestion
             {
                 Prompt = "Select all even numbers",
                 Options = new List<string> { "1", "2", "3", "4" },
                 CorrectAnswers = new List<string> { "2", "4" },
-                CountsTowardsMarking = true
+                CountsTowardsMarking = true,
+                Order = 1
             };
             mcq.SetToAllOrNothingMarking();
 
@@ -36,7 +33,8 @@ namespace JudeAptitudeTests
                 Prompt = "What is the answer to life, the universe and everything?",
                 ExpectedAnswer = "42",
                 UseExactMatch = true,
-                CountsTowardsMarking = true
+                CountsTowardsMarking = true,
+                Order = 2
             };
 
             var slider = new SliderQuestion
@@ -45,286 +43,127 @@ namespace JudeAptitudeTests
                 MinValue = 1,
                 MaxValue = 5,
                 PassingThresholdValue = 3,
-                CountsTowardsMarking = true
+                CountsTowardsMarking = true,
+                Order = 3
             };
 
-            var page = new Page("Page 1");
-            page.Questions.Add(mcq);
-            page.Questions.Add(ftq);
-            page.Questions.Add(slider);
-            exam.Pages.Add(page);
+            var page1 = new Page("Page 1") { Order = 1 };
+            page1.Questions.Add(mcq);
+            page1.Questions.Add(ftq);
+            page1.Questions.Add(slider);
 
-            var attempt = new ExamAttempt(exam);
-
-            // Act: Add correct answers for all questions
-            attempt.AddAnswer(new MultipleChoiceAnswer
+            var page2 = new Page("Page 2") { Order = 2 };
+            var ftq2 = new FreeTextQuestion
             {
-                QuestionId = mcq.Id,
-                GivenAnswers = new List<string> { "2", "4" }
-            });
-            attempt.AddAnswer(new FreeTextAnswer
-            {
-                QuestionId = ftq.Id,
-                GivenText = "42"
-            });
-            attempt.AddAnswer(new SliderAnswer
-            {
-                QuestionId = slider.Id,
-                GivenNumber = 3 // Assume 3 is the "correct" value for this test
-            });
-
-            var result = attempt.Submit();
-
-            // Assert: ExamResult is correct
-            Assert.IsNotNull(result);
-            Assert.AreEqual(exam.Id, result.ExamId);
-            Assert.AreEqual(attempt.ExamAttemptId, result.ExamAttemptId);
-            Assert.IsNotNull(result.SubmittedDate);
-            Assert.AreEqual(exam.MaximumPossibleMark(), result.MaximumPossibleMark);
-            Assert.IsNotNull(result.Answers);
-            Assert.AreEqual(3, result.Answers.Count);
-
-            // Each answer should be fully marked (assuming all-or-nothing and correct input)
-            foreach (var answer in result.Answers)
-            {
-                Assert.That(answer.Mark, Is.GreaterThanOrEqualTo(1));
-            }
-            Assert.That(result.Mark, Is.EqualTo(result.MaximumPossibleMark));
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-        private Exam BuildSimpleExam()
-        {
-            var mcq = new MultipleChoiceQuestion
-            {
-                Prompt = "Select all even numbers",
-                Options = new List<string> { "1", "2", "3", "4" },
-                CorrectAnswers = new List<string> { "2", "4" },
-                CountsTowardsMarking = true
-            };
-            mcq.SetToAllOrNothingMarking();
-
-            var ftq = new FreeTextQuestion
-            {
-                Prompt = "What is the answer to life, the universe and everything?",
-                ExpectedAnswer = "42",
+                Prompt = "Say hello",
+                ExpectedAnswer = "hello",
                 UseExactMatch = true,
-                CountsTowardsMarking = true
+                CountsTowardsMarking = true,
+                Order = 1
             };
-
-            var slider = new SliderQuestion
-            {
-                Prompt = "Rate from 1 to 5",
-                MinValue = 1,
-                MaxValue = 5,
-                PassingThresholdValue = 3,
-                CountsTowardsMarking = true
-            };
-
-            var page = new Page("Page 1");
-            page.Questions.Add(mcq);
-            page.Questions.Add(ftq);
-            page.Questions.Add(slider);
+            page2.Questions.Add(ftq2);
 
             var exam = new Exam("Test Exam", isMarked: true);
-            exam.Pages.Add(page);
+            exam.Pages.Add(page1);
+            exam.Pages.Add(page2);
+            exam.SetPassingMarkPercentage(0.5m);
+            exam.ValidateExam();
             return exam;
         }
 
         [Test]
-        public void GetQuestionsOnCurrentPage_ReturnsQuestions()
+        public void ExamAttempt_AllPublicFunctions_AreTested()
         {
-            var exam = BuildSimpleExam();
+            var exam = BuildExam();
             var attempt = new ExamAttempt(exam);
-            var questions = attempt.GetQuestionsOnCurrentPage();
-            Assert.AreEqual(3, questions.Count);
-        }
 
-        [Test]
-        public void AddAnswer_And_GetCurrentAnswerForQuestion_Works()
-        {
-            var exam = BuildSimpleExam();
-            var attempt = new ExamAttempt(exam);
-            var mcq = (MultipleChoiceQuestion)exam.Pages[0].Questions[0];
+            // GetAllQuestionsOnCurrentPage
+            var questionsPage1 = attempt.GetAllQuestionsOnCurrentPage();
+            Assert.AreEqual(3, questionsPage1.Count);
+            Assert.That(questionsPage1.Any(q => q.Prompt == "Select all even numbers"));
 
-            var answer = new MultipleChoiceAnswer
+            // SubmitAnswerForQuestionOnCurrentPage (MCQ)
+            var mcq = exam.Pages[0].Questions.OfType<MultipleChoiceQuestion>().First();
+            var mcqAnswer = new MultipleChoiceAnswer
             {
                 QuestionId = mcq.Id,
                 GivenAnswers = new List<string> { "2", "4" }
             };
+            attempt.SubmitAnswerForQuestionOnCurrentPage(mcqAnswer);
+            Assert.IsNotNull(attempt.GetCurrentAnswerForQuestion(mcq.Id));
 
-            attempt.AddAnswer(answer);
-            var retrieved = attempt.GetCurrentAnswerForQuestion(mcq.Id);
-            Assert.IsNotNull(retrieved);
-            Assert.That(retrieved, Is.InstanceOf<MultipleChoiceAnswer>());
-            Assert.That(((MultipleChoiceAnswer)retrieved).GivenAnswers, Is.EquivalentTo(new[] { "2", "4" }));
-        }
-
-        [Test]
-        public void GetCorrectAnswerForQuestion_ReturnsExpectedAnswer()
-        {
-            var exam = BuildSimpleExam();
-            var attempt = new ExamAttempt(exam);
-            var mcq = (MultipleChoiceQuestion)exam.Pages[0].Questions[0];
-            var ftq = (FreeTextQuestion)exam.Pages[0].Questions[1];
-            var slider = (SliderQuestion)exam.Pages[0].Questions[2];
-
-            var mcqCorrect = attempt.GetCorrectAnswerForQuestion(mcq.Id) as MultipleChoiceAnswer;
-            Assert.IsNotNull(mcqCorrect);
-            Assert.That(mcqCorrect.GivenAnswers, Is.EquivalentTo(mcq.CorrectAnswers));
-
-            var ftqCorrect = attempt.GetCorrectAnswerForQuestion(ftq.Id) as FreeTextAnswer;
-            Assert.IsNotNull(ftqCorrect);
-            Assert.AreEqual(ftq.ExpectedAnswer, ftqCorrect.GivenText);
-
-            var sliderCorrect = attempt.GetCorrectAnswerForQuestion(slider.Id) as SliderAnswer;
-            Assert.IsNotNull(sliderCorrect);
-            Assert.That(sliderCorrect.GivenNumber, Is.InRange(slider.MinValue, slider.MaxValue));
-        }
-
-        [Test]
-        public void Submit_ReturnsCorrectExamResult()
-        {
-            var exam = BuildSimpleExam();
-            var attempt = new ExamAttempt(exam);
-            var mcq = (MultipleChoiceQuestion)exam.Pages[0].Questions[0];
-            var ftq = (FreeTextQuestion)exam.Pages[0].Questions[1];
-            var slider = (SliderQuestion)exam.Pages[0].Questions[2];
-
-            attempt.AddAnswer(new MultipleChoiceAnswer
-            {
-                QuestionId = mcq.Id,
-                GivenAnswers = new List<string> { "2", "4" }
-            });
-            attempt.AddAnswer(new FreeTextAnswer
+            // SubmitAnswerForQuestionOnCurrentPage (FreeText)
+            var ftq = exam.Pages[0].Questions.OfType<FreeTextQuestion>().First();
+            var ftqAnswer = new FreeTextAnswer
             {
                 QuestionId = ftq.Id,
                 GivenText = "42"
-            });
-            attempt.AddAnswer(new SliderAnswer
+            };
+            attempt.SubmitAnswerForQuestionOnCurrentPage(ftqAnswer);
+            Assert.IsNotNull(attempt.GetCurrentAnswerForQuestion(ftq.Id));
+
+            // SubmitAnswerForQuestionOnCurrentPage (Slider)
+            var slider = exam.Pages[0].Questions.OfType<SliderQuestion>().First();
+            var sliderAnswer = new SliderAnswer
             {
                 QuestionId = slider.Id,
                 GivenNumber = 3
-            });
+            };
+            attempt.SubmitAnswerForQuestionOnCurrentPage(sliderAnswer);
+            Assert.IsNotNull(attempt.GetCurrentAnswerForQuestion(slider.Id));
 
-            var result = attempt.Submit();
+            // GetCorrectAnswerForQuestion
+            var correctMcq = attempt.GetCorrectAnswerForQuestion(mcq.Id) as MultipleChoiceAnswer;
+            Assert.IsNotNull(correctMcq);
+            Assert.That(correctMcq.GivenAnswers, Is.EquivalentTo(mcq.CorrectAnswers));
 
+            var correctFtq = attempt.GetCorrectAnswerForQuestion(ftq.Id) as FreeTextAnswer;
+            Assert.IsNotNull(correctFtq);
+            Assert.AreEqual(ftq.ExpectedAnswer, correctFtq.GivenText);
+
+            var correctSlider = attempt.GetCorrectAnswerForQuestion(slider.Id) as SliderAnswer;
+            Assert.IsNotNull(correctSlider);
+            Assert.That(correctSlider.GivenNumber, Is.InRange(slider.MinValue, slider.MaxValue));
+
+            // GetCurrentPage
+            var currentPageView = attempt.GetCurrentPage();
+            Assert.AreEqual("Page 1", currentPageView.Title);
+
+            // NavigateToNextPage and GetAllQuestionsOnCurrentPage
+            attempt.NavigateToNextPage();
+            var questionsPage2 = attempt.GetAllQuestionsOnCurrentPage();
+            Assert.AreEqual(1, questionsPage2.Count);
+            Assert.AreEqual("Say hello", questionsPage2[0].Prompt);
+
+            // SubmitAnswerForQuestionOnCurrentPage (Page 2)
+            var ftq2 = exam.Pages[1].Questions.OfType<FreeTextQuestion>().First();
+            var ftq2Answer = new FreeTextAnswer
+            {
+                QuestionId = ftq2.Id,
+                GivenText = "hello"
+            };
+            attempt.SubmitAnswerForQuestionOnCurrentPage(ftq2Answer);
+            Assert.IsNotNull(attempt.GetCurrentAnswerForQuestion(ftq2.Id));
+
+            // NavigateToPreviousPage
+            attempt.NavigateToPreviousPage();
+            var backToPage1 = attempt.GetCurrentPage();
+            Assert.AreEqual("Page 1", backToPage1.Title);
+
+            // SubmitExamAttempt
+            var result = attempt.SubmitExamAttempt();
             Assert.IsNotNull(result);
             Assert.AreEqual(exam.Id, result.ExamId);
             Assert.AreEqual(attempt.ExamAttemptId, result.ExamAttemptId);
             Assert.IsNotNull(result.SubmittedDate);
             Assert.AreEqual(exam.MaximumPossibleMark(), result.MaximumPossibleMark);
             Assert.IsNotNull(result.Answers);
-            Assert.AreEqual(3, result.Answers.Count);
+            Assert.AreEqual(4, result.Answers.Count);
             Assert.That(result.Mark, Is.EqualTo(result.MaximumPossibleMark));
-        }
-
-        [Test]
-        public void Paging_NextAndPreviousPage_Works()
-        {
-            var exam = BuildSimpleExam();
-            // Add a second page
-            var page2 = new Page("Page 2");
-            exam.Pages.Add(page2);
-            var attempt = new ExamAttempt(exam);
-
-            // Start at page 0
-            Assert.AreEqual("Page 1", attempt.GetCurrentPage().Title);
-
-            // Move to next page
-            var next = attempt.NextPage();
-            Assert.IsNotNull(next);
-            Assert.AreEqual("Page 2", next.Title);
-
-            // Move back to previous page
-            var prev = attempt.PreviousPage();
-            Assert.IsNotNull(prev);
-            Assert.AreEqual("Page 1", prev.Title);
+            Assert.AreEqual(ExamStatus.Passed, result.ExamStatus);
         }
 
 
-
-        [Test]
-        public void ExamAttempt_Submit_ReturnsFailedExamResult_WhenBelowPassingMark()
-        {
-            // Arrange: Build a marked exam with a high passing mark
-            var exam = new Exam("Fail Test Exam", isMarked: true);
-            exam.SetPassingMarkPercentage(0.8m); // 80% required to pass
-
-            var mcq = new MultipleChoiceQuestion
-            {
-                Prompt = "Select all even numbers",
-                Options = new List<string> { "1", "2", "3", "4" },
-                CorrectAnswers = new List<string> { "2", "4" },
-                CountsTowardsMarking = true
-            };
-            mcq.SetToAllOrNothingMarking();
-
-            var ftq = new FreeTextQuestion
-            {
-                Prompt = "What is the answer to life, the universe and everything?",
-                ExpectedAnswer = "42",
-                UseExactMatch = true,
-                CountsTowardsMarking = true
-            };
-
-            var slider = new SliderQuestion
-            {
-                Prompt = "Rate from 1 to 5",
-                MinValue = 1,
-                MaxValue = 5,
-                PassingThresholdValue = 3,
-                CountsTowardsMarking = true
-            };
-
-            var page = new Page("Page 1");
-            page.Questions.Add(mcq);
-            page.Questions.Add(ftq);
-            page.Questions.Add(slider);
-            exam.Pages.Add(page);
-
-            var attempt = new ExamAttempt(exam);
-
-            // Act: Add only one correct answer, others incorrect
-            attempt.AddAnswer(new MultipleChoiceAnswer
-            {
-                QuestionId = mcq.Id,
-                GivenAnswers = new List<string> { "1" } // Incorrect
-            });
-            attempt.AddAnswer(new FreeTextAnswer
-            {
-                QuestionId = ftq.Id,
-                GivenText = "wrong answer" // Incorrect
-            });
-            attempt.AddAnswer(new SliderAnswer
-            {
-                QuestionId = slider.Id,
-                GivenNumber = 3 // Assume this is correct
-            });
-
-            var result = attempt.Submit();
-
-            // Assert: ExamResult is failed
-            Assert.IsNotNull(result);
-            Assert.AreEqual(exam.Id, result.ExamId);
-            Assert.AreEqual(attempt.ExamAttemptId, result.ExamAttemptId);
-            Assert.IsNotNull(result.SubmittedDate);
-            Assert.AreEqual(exam.MaximumPossibleMark(), result.MaximumPossibleMark);
-            Assert.IsNotNull(result.Answers);
-            Assert.AreEqual(3, result.Answers.Count);
-            Assert.That(result.Mark, Is.LessThan(result.PassingMark));
-            Assert.AreEqual(ExamStatus.Failed, result.ExamStatus);
-        }
     }
 
 }

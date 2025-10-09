@@ -13,6 +13,10 @@ namespace JudeAptitude.ExamBuilder
         public string Prompt { get; set; }
         public string Description { get; set; }
         public string Hint { get; set; }
+        public string Feedback { get; set; }
+
+        public int Order { get; set; }
+
 
         public bool CountsTowardsMarking { get; set; }
 
@@ -24,6 +28,7 @@ namespace JudeAptitude.ExamBuilder
         {
             Id = Guid.NewGuid();
             CountsTowardsMarking = true;
+            Order = 1;
         }
 
         public abstract ValidationResult ValidateQuestion();
@@ -33,8 +38,6 @@ namespace JudeAptitude.ExamBuilder
 
     public class MultipleChoiceQuestion : Question
     {
-
-
         public List<string> Options { get; set; }
         public List<string> CorrectAnswers { get; set; }
 

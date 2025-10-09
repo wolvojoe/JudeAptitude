@@ -9,12 +9,11 @@ namespace JudeAptitude.ExamBuilder
         public Guid Id { get; }
 
         public string Title { get; }
-
         public string Description { get; set; }
-
         public List<Question> Questions { get; set; }
-
         public bool RandomiseQuestionOrder { get; set; }
+        public int Order { get; set; }
+
 
         public Page(string title)
         {
@@ -22,6 +21,7 @@ namespace JudeAptitude.ExamBuilder
             Id = Guid.NewGuid();
             Questions = new List<Question>();
             RandomiseQuestionOrder = false;
+            Order = 1;
         }
 
         public decimal MaximumPossibleMark()
