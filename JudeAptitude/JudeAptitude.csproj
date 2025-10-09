@@ -18,6 +18,7 @@ Supports functionality for Exams, Quizzes, Surveys, Training and CPD like proces
     <RepositoryUrl>https://github.com/wolvojoe/JudeAptitude</RepositoryUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Exam; Quiz; Survey; Training; CPD; Test; Testing; Question; Answer; Assessment; Review; Certification; Qualification; Poll; Questionnaire </PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
