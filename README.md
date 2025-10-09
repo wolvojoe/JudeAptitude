@@ -18,9 +18,9 @@ Exams can also be marked, if so Questions that count towards the mark need to ha
 
 **Simple Exam**
 ```
-	var myFirstExam = new Exam("Hey Jude", isMarked: true);
+    var myFirstExam = new Exam("Hey Jude", isMarked: true);
 
-	var myFirstPage = new Page("Simple Page 1");
+    var myFirstPage = new Page("Simple Page 1");
 
     var myFirstQuestion = new FreeTextQuestion
     {
@@ -31,10 +31,10 @@ Exams can also be marked, if so Questions that count towards the mark need to ha
     };
 
 
-	myFirstPage.Questions.Add(myFirstQuestion);
-	myFirstExam.Pages.Add(myFirstPage);
+    myFirstPage.Questions.Add(myFirstQuestion);
+    myFirstExam.Pages.Add(myFirstPage);
 
-	var result = myFirstExam.ValidateExam();
+    var result = myFirstExam.ValidateExam();
 
 ```
 You can create Exam objects and save them to a DB or some other storage, or you can create Exam objects on the fly from say a large Question Bank.
@@ -49,11 +49,11 @@ Once you have an Exam a user can now Attempt it
 
     var questionsOnCurrentPage = myFirstAttempt.GetAllQuestionsOnCurrentPage();
 
-    var simpleQuestion = questionsOnCurrentPage[0] as FreeTextQuestion;
+    var simpleQuestion = questionsOnCurrentPage[0];
 
-    myFirstAttempt.AddAnswer(new FreeTextAnswer
+    myFirstAttempt.SubmitAnswerForQuestionOnCurrentPage(new FreeTextAnswer
     {
-        QuestionId = simpleQuestion.Id,
+        QuestionId = simpleQuestion.QuestionId,
         GivenText = "Cannock"
     });
 
