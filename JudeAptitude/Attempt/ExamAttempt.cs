@@ -17,13 +17,10 @@ namespace JudeAptitude.Attempt
         private Exam _exam { get; set; }
         private List<Answer> _answers { get; }
         private ExamResult _result { get; set; }
-        private int _currentPageIndex = 0;
-
-        private Dictionary<Guid, int> _pageOrder { get; set; }
-
+        private List<PageOrder> _pageOrder { get; set; }
         private Dictionary<Guid, int> _questionOrder { get; set; }
 
-        
+
         public ExamAttempt(Exam exam)
         {
             ValidateExam(exam);
@@ -33,6 +30,8 @@ namespace JudeAptitude.Attempt
             ExamAttemptId = Guid.NewGuid();
 
             _answers = new List<Answer>();
+            _pageOrder = new List<PageOrder>();
+            _questionOrder = new Dictionary<Guid, int>();
 
             _result = new ExamResult
             {
@@ -42,14 +41,11 @@ namespace JudeAptitude.Attempt
                 SubmittedDate = null
             };
 
+            SetPageOrder();
             SetQuestionOrder();
         }
 
-
-
         #region Public
-
-
 
         /// <summary>
         /// Submits an Answer for a Question on the current Page
@@ -69,7 +65,6 @@ namespace JudeAptitude.Attempt
 
             _answers.Add(selectedAnswer);
         }
-
 
         /// <summary>
         /// Submits the Exam for Marking and returns an Exam Result
@@ -111,7 +106,6 @@ namespace JudeAptitude.Attempt
             _result.ExamStatus = (_result.Mark >= _result.PassingMark) ? ExamStatus.Passed : ExamStatus.Failed;
             return _result;
         }
-
 
         /// <summary>
         /// Gets all Questions on the Exam Attempts current Page, ordered as specified by the Exam
@@ -163,19 +157,15 @@ namespace JudeAptitude.Attempt
             }
             else if (question is SliderQuestion sq)
             {
-                int correctValue = (sq.MinValue + sq.MaxValue) / 2;
                 return new SliderAnswer
                 {
                     QuestionId = questionId,
-                    GivenNumber = correctValue
+                    GivenNumber = sq.PassingThresholdValue
                 };
             }
 
             return null;
         }
-
-
-
 
         /// <summary>
         /// Gets the current Page details
@@ -184,10 +174,7 @@ namespace JudeAptitude.Attempt
         /// <exception cref="InvalidOperationException"></exception>
         public PageView GetCurrentPage()
         {
-            if (_currentPageIndex < 0 || _currentPageIndex >= _exam.Pages.Count)
-                throw new InvalidOperationException("Current page index is out of range.");
-
-            return ConvertPageToPageView(_exam.Pages[_currentPageIndex]);
+            return ConvertPageToPageView(GetCurrentPageObject());
         }
 
         /// <summary>
@@ -195,9 +182,12 @@ namespace JudeAptitude.Attempt
         /// </summary>
         public void NavigateToNextPage()
         {
-            if (_currentPageIndex < _exam.Pages.Count - 1)
+            var currentPage = GetCurrentPageObject();
+
+            if (currentPage.Order < _pageOrder.Count)
             {
-                _currentPageIndex++;
+                _pageOrder.Where(x => x.PageId == currentPage.Id).First().IsCurrentPage = false;
+                _pageOrder.Where(x => x.Order == currentPage.Order + 1).First().IsCurrentPage = true;
             }
         }
 
@@ -206,29 +196,29 @@ namespace JudeAptitude.Attempt
         /// </summary>
         public void NavigateToPreviousPage()
         {
-            if (_currentPageIndex > 0)
+            var currentPage = GetCurrentPageObject();
+
+            if (currentPage.Order > 1)
             {
-                _currentPageIndex--;
+                _pageOrder.Where(x => x.PageId == currentPage.Id).First().IsCurrentPage = false;
+                _pageOrder.Where(x => x.Order == currentPage.Order - 1).First().IsCurrentPage = true;
             }
         }
 
-
         #endregion
-
-
-
 
 
         #region Private Methods
 
         private Page GetCurrentPageObject()
         {
-            if (_currentPageIndex < 0 || _currentPageIndex >= _exam.Pages.Count)
-                throw new InvalidOperationException("Current page index is out of range.");
+            var currentPage = _exam.Pages.FirstOrDefault(x => x.Id == _pageOrder.FirstOrDefault(z => z.IsCurrentPage).PageId);
 
-            return _exam.Pages[_currentPageIndex];
+            if (currentPage is null)
+                throw new InvalidOperationException("Current page is invalid.");
+
+            return currentPage;
         }
-
 
         private PageView ConvertPageToPageView(Page selectedPage)
         {
@@ -242,10 +232,10 @@ namespace JudeAptitude.Attempt
                 if (page.RandomiseQuestionOrder)
                 {
                     var randomGenerator = new Random();
-                    var pageQuestionsRandomOrder = page.Questions.OrderBy(x => randomGenerator.Next());
+                    var pageQuestionsRandomOrder = page.Questions.OrderBy(x => randomGenerator.Next()).ToList();
                     var orderCount = 1;
 
-                    foreach (var question in page.Questions)
+                    foreach (var question in pageQuestionsRandomOrder)
                     {
                         _questionOrder.Add(question.Id, orderCount);
                     }
@@ -262,35 +252,31 @@ namespace JudeAptitude.Attempt
 
         private void SetPageOrder()
         {
-            foreach (var page in _exam.Pages)
+            var pagesOrdered = new List<Page>();
+            var orderCount = 1;
+
+            if (_exam.RandomisePageOrder)
             {
-                if (_exam.RandomisePageOrder)
+                var randomGenerator = new Random();
+                pagesOrdered = _exam.Pages.OrderBy(x => randomGenerator.Next(1, 5000)).ToList();
+            }
+            else
+            {
+                pagesOrdered = _exam.Pages.OrderBy(x => x.Order).ToList();
+            }
+
+            foreach (var page in pagesOrdered)
+            {
+                _pageOrder.Add(new PageOrder()
                 {
+                    PageId = page.Id,
+                    Order = orderCount,
+                    IsCurrentPage = _pageOrder.Count == 0 ? true : false
+                });
 
-                }
-
-
-                if (page.RandomiseQuestionOrder)
-                {
-                    var randomGenerator = new Random();
-                    var pageQuestionsRandomOrder = page.Questions.OrderBy(x => randomGenerator.Next());
-                    var orderCount = 1;
-
-                    foreach (var question in page.Questions)
-                    {
-                        _questionOrder.Add(question.Id, orderCount);
-                    }
-                }
-                else
-                {
-                    foreach (var question in page.Questions)
-                    {
-                        _questionOrder.Add(question.Id, question.Order);
-                    }
-                }
+                orderCount += 1;
             }
         }
-
 
         private decimal GetAnswerMark(Question question, Answer answer)
         {
@@ -321,7 +307,6 @@ namespace JudeAptitude.Attempt
             return question;
         }
 
-
         private bool ValidateExam(Exam exam)
         {
             var examValidation = exam.ValidateExam();
@@ -333,7 +318,6 @@ namespace JudeAptitude.Attempt
 
             return true;
         }
-
 
         private bool ValidateAnswer(Answer selectedAnswer)
         {
@@ -377,8 +361,6 @@ namespace JudeAptitude.Attempt
 
             return true;
         }
-
-
 
         private QuestionView ToQuestionView(Question question)
         {
@@ -433,10 +415,7 @@ namespace JudeAptitude.Attempt
             return view;
         }
 
-
         #endregion
-
-
 
     }
 
@@ -508,5 +487,13 @@ namespace JudeAptitude.Attempt
 
         public bool ReversePassingThreshold { get; set; }
         public int PassingThresholdValue { get; set; }
+    }
+
+
+    public class PageOrder
+    {
+        public Guid PageId { get; set; }
+        public int Order { get; set; }
+        public bool IsCurrentPage { get; set; }
     }
 }
