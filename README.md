@@ -47,7 +47,7 @@ Once you have an Exam a user can now Attempt it
 ```
     var myFirstAttempt = new ExamAttempt(myFirstExam);
 
-    var questionsOnCurrentPage = myFirstAttempt.GetQuestionsOnCurrentPage();
+    var questionsOnCurrentPage = myFirstAttempt.GetAllQuestionsOnCurrentPage();
 
     var simpleQuestion = questionsOnCurrentPage[0] as FreeTextQuestion;
 
@@ -57,10 +57,10 @@ Once you have an Exam a user can now Attempt it
         GivenText = "Cannock"
     });
 
-    var myFirstResult = myFirstAttempt.Submit();
+    var myFirstResult = myFirstAttempt.SubmitExamAttempt();
 
 ```
 
-Once the ExamAttempt has been completed, you can call Submit() and the Exam Attempt will be marked and return a Result object.
+Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and the Exam Attempt will be marked and return a Result object.
 
 In memory of Jude (2023 - 2024)
