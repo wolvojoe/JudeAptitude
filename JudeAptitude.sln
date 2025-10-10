@@ -10,6 +10,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{35938ED4-DC25-4E5C-A135-C76675EF1083}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		JudeAptitude-Normal.png = JudeAptitude-Normal.png
+		JudeAptitude.png = JudeAptitude.png
 	EndProjectSection
 EndProject
 Global
