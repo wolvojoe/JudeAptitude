@@ -47,8 +47,10 @@ namespace JudeAptitude.ExamBuilder
             RandomisePageOrder = false;
         }
 
-        #region Validation
-
+        /// <summary>
+        /// Validate that the Exam can be Attempted
+        /// </summary>
+        /// <returns></returns>
         public ValidationResult ValidateExam()
         {
             var validationErrors = new List<string>();
@@ -90,36 +92,30 @@ namespace JudeAptitude.ExamBuilder
             return ValidationResult.Valid();
         }
 
-        private List<string> ValidateQuestionsCountingTowardsMark()
-        {
-            var validationErrors = new List<string>();
-
-            var questionsCountingTowardsMark = AllQuestionsCountingTowardsMark();
-
-            foreach(var question in questionsCountingTowardsMark)
-            {
-                var result = question.ValidateQuestion();
-                if (!result.IsValid)
-                {
-                    validationErrors.AddRange(result.Errors);
-                }
-            }
-
-            return validationErrors;
-        }
-
-        #endregion
-
+        /// <summary>
+        /// Gets all Questions that count towards Marking
+        /// </summary>
+        /// <returns></returns>
         public List<Question> AllQuestionsCountingTowardsMark()
         {
             return Pages.SelectMany(p => p.Questions).Where(x => x.CountsTowardsMarking).ToList();
         }
 
+        /// <summary>
+        /// Get all Questions
+        /// </summary>
+        /// <returns></returns>
         public List<Question> AllQuestions()
         {
             return Pages.SelectMany(p => p.Questions).ToList();
         }
 
+        /// <summary>
+        /// Set the Passing Mark Percentage for the Exam
+        /// Must be between 0.0 and 1.0
+        /// </summary>
+        /// <param name="passingMark"></param>
+        /// <returns></returns>
         public bool SetPassingMarkPercentage(decimal passingMark)
         {
             if (passingMark < 0.0m || passingMark > 1.0m)
@@ -131,6 +127,10 @@ namespace JudeAptitude.ExamBuilder
             return true;
         }
 
+        /// <summary>
+        /// Get the Total Passing Mark for the Exam
+        /// </summary>
+        /// <returns></returns>
         public decimal PassingMarkTotal()
         {
             var maxMark = MaximumPossibleMark();
@@ -138,6 +138,10 @@ namespace JudeAptitude.ExamBuilder
             return maxMark * _passingMarkPercentage;
         }
 
+        /// <summary>
+        /// Maximum Possible Mark for the Exam
+        /// </summary>
+        /// <returns></returns>
         public decimal MaximumPossibleMark()
         {
             decimal maxMark = 0.0m;
@@ -148,6 +152,26 @@ namespace JudeAptitude.ExamBuilder
             }
 
             return maxMark;
+        }
+
+
+
+        private List<string> ValidateQuestionsCountingTowardsMark()
+        {
+            var validationErrors = new List<string>();
+
+            var questionsCountingTowardsMark = AllQuestionsCountingTowardsMark();
+
+            foreach (var question in questionsCountingTowardsMark)
+            {
+                var result = question.ValidateQuestion();
+                if (!result.IsValid)
+                {
+                    validationErrors.AddRange(result.Errors);
+                }
+            }
+
+            return validationErrors;
         }
     }
 

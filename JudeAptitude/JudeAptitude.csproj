@@ -5,7 +5,7 @@
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>JudeAptitude</PackageId>
     <Title>Jude Aptitude - Exam Engine</Title>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>SpaceJoe</Authors>
     <Company />
     <Product />
@@ -20,6 +20,7 @@ Supports functionality for Exams, Quizzes, Surveys, Training and CPD like proces
     <PackageTags>Exam; Quiz; Survey; Training; CPD; Test; Testing; Question; Answer; Assessment; Review; Certification; Qualification; Poll; Questionnaire </PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageIcon>JudeAptitude-128.png</PackageIcon>
+    <PackageReleaseNotes>Still largely a WIP</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
