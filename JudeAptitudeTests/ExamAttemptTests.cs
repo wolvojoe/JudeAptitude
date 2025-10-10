@@ -16,7 +16,7 @@ namespace JudeAptitudeTests
         }
 
 
-        private Exam BuildExam()
+        private JudeExam BuildExam()
         {
             var mcq = new MultipleChoiceQuestion
             {
@@ -47,12 +47,12 @@ namespace JudeAptitudeTests
                 Order = 3
             };
 
-            var page1 = new Page("Page 1") { Order = 1 };
+            var page1 = new ExamPage("Page 1") { Order = 1 };
             page1.Questions.Add(mcq);
             page1.Questions.Add(ftq);
             page1.Questions.Add(slider);
 
-            var page2 = new Page("Page 2") { Order = 2 };
+            var page2 = new ExamPage("Page 2") { Order = 2 };
             var ftq2 = new FreeTextQuestion
             {
                 Prompt = "Say hello",
@@ -63,7 +63,7 @@ namespace JudeAptitudeTests
             };
             page2.Questions.Add(ftq2);
 
-            var exam = new Exam("Test Exam", isMarked: true);
+            var exam = new JudeExam("Test Exam", isMarked: true);
             exam.Pages.Add(page1);
             exam.Pages.Add(page2);
             exam.SetPassingMarkPercentage(0.5m);
@@ -113,15 +113,15 @@ namespace JudeAptitudeTests
             Assert.IsNotNull(attempt.GetCurrentAnswerForQuestion(slider.Id));
 
             // GetCorrectAnswerForQuestion
-            var correctMcq = attempt.GetCorrectAnswerForQuestion(mcq.Id) as MultipleChoiceAnswer;
+            var correctMcq = attempt.GetCorrectAnswerForQuestion(mcq.Id) as MultipleChoiceAnswerView;
             Assert.IsNotNull(correctMcq);
             Assert.That(correctMcq.GivenAnswers, Is.EquivalentTo(mcq.CorrectAnswers));
 
-            var correctFtq = attempt.GetCorrectAnswerForQuestion(ftq.Id) as FreeTextAnswer;
+            var correctFtq = attempt.GetCorrectAnswerForQuestion(ftq.Id) as FreeTextAnswerView;
             Assert.IsNotNull(correctFtq);
             Assert.AreEqual(ftq.ExpectedAnswer, correctFtq.GivenText);
 
-            var correctSlider = attempt.GetCorrectAnswerForQuestion(slider.Id) as SliderAnswer;
+            var correctSlider = attempt.GetCorrectAnswerForQuestion(slider.Id) as SliderAnswerView;
             Assert.IsNotNull(correctSlider);
             Assert.That(correctSlider.GivenNumber, Is.InRange(slider.MinValue, slider.MaxValue));
 

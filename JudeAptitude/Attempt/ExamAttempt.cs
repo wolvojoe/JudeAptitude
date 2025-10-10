@@ -14,14 +14,14 @@ namespace JudeAptitude.Attempt
         public Guid ExamAttemptId { get; }
 
 
-        private Exam _exam { get; set; }
+        private JudeExam _exam { get; set; }
         private List<Answer> _answers { get; }
         private ExamResult _result { get; set; }
         private List<PageOrder> _pageOrder { get; set; }
         private Dictionary<Guid, int> _questionOrder { get; set; }
 
 
-        public ExamAttempt(Exam exam)
+        public ExamAttempt(JudeExam exam)
         {
             ValidateExam(exam);
 
@@ -59,6 +59,11 @@ namespace JudeAptitude.Attempt
                 throw new InvalidOperationException("Answer is invalid.");
             }
 
+            if (HasBeenSubmitted() == true)
+            {
+                throw new InvalidOperationException("Exam Attempt has already been Submitted.");
+            }
+
             var question = GetQuestionOnCurrentPage(selectedAnswer.QuestionId);
 
             _answers.RemoveAll(a => a.QuestionId == selectedAnswer.QuestionId);
@@ -72,10 +77,13 @@ namespace JudeAptitude.Attempt
         /// <returns></returns>
         public ExamResult SubmitExamAttempt()
         {
-            if (_result.SubmittedDate != null)
+            if (HasBeenSubmitted())
             {
                 throw new InvalidOperationException("Exam Attempt has already been Submitted.");
             }
+
+            _result.Answers = _answers;
+            _result.SubmittedDate = DateTime.UtcNow;
 
             if (!_exam.IsMarked)
             {
@@ -98,12 +106,11 @@ namespace JudeAptitude.Attempt
                 totalMark += questionMark;
             }
 
-            _result.SubmittedDate = DateTime.UtcNow;
             _result.Mark = (decimal)Math.Round(totalMark);
-            _result.MaximumPossibleMark = _exam.MaximumPossibleMark();
             _result.PassingMark = _exam.PassingMarkTotal();
-            _result.Answers = _answers;
+            _result.MaximumPossibleMark = _exam.MaximumPossibleMark();
             _result.ExamStatus = (_result.Mark >= _result.PassingMark) ? ExamStatus.Passed : ExamStatus.Failed;
+
             return _result;
         }
 
@@ -123,9 +130,38 @@ namespace JudeAptitude.Attempt
         /// </summary>
         /// <param name="questionId"></param>
         /// <returns></returns>
-        public Answer GetCurrentAnswerForQuestion(Guid questionId)
+        public AnswerView GetCurrentAnswerForQuestion(Guid questionId)
         {
-            return _answers.FirstOrDefault(a => a.QuestionId == questionId);
+            var answer = _answers.FirstOrDefault(a => a.QuestionId == questionId);
+            if (answer == null)
+                return null;
+
+            if (answer is MultipleChoiceAnswer mca)
+            {
+                return new MultipleChoiceAnswerView
+                {
+                    QuestionId = questionId,
+                    GivenAnswers = mca.GivenAnswers != null ? new List<string>(mca.GivenAnswers) : new List<string>()
+                };
+            }
+            else if (answer is FreeTextAnswer fta)
+            {
+                return new FreeTextAnswerView
+                {
+                    QuestionId = questionId,
+                    GivenText = fta.GivenText
+                };
+            }
+            else if (answer is SliderAnswer sav)
+            {
+                return new SliderAnswerView
+                {
+                    QuestionId = questionId,
+                    GivenNumber = sav.GivenNumber
+                };
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -133,7 +169,7 @@ namespace JudeAptitude.Attempt
         /// </summary>
         /// <param name="questionId"></param>
         /// <returns></returns>
-        public Answer GetCorrectAnswerForQuestion(Guid questionId)
+        public AnswerView GetCorrectAnswerForQuestion(Guid questionId)
         {
             var question = _exam.AllQuestions().FirstOrDefault(q => q.Id == questionId);
             if (question == null)
@@ -141,7 +177,7 @@ namespace JudeAptitude.Attempt
 
             if (question is MultipleChoiceQuestion mcq)
             {
-                return new MultipleChoiceAnswer
+                return new MultipleChoiceAnswerView
                 {
                     QuestionId = questionId,
                     GivenAnswers = mcq.CorrectAnswers != null ? new List<string>(mcq.CorrectAnswers) : new List<string>()
@@ -149,7 +185,7 @@ namespace JudeAptitude.Attempt
             }
             else if (question is FreeTextQuestion ftq)
             {
-                return new FreeTextAnswer
+                return new FreeTextAnswerView
                 {
                     QuestionId = questionId,
                     GivenText = ftq.ExpectedAnswer
@@ -157,7 +193,7 @@ namespace JudeAptitude.Attempt
             }
             else if (question is SliderQuestion sq)
             {
-                return new SliderAnswer
+                return new SliderAnswerView
                 {
                     QuestionId = questionId,
                     GivenNumber = sq.PassingThresholdValue
@@ -210,7 +246,12 @@ namespace JudeAptitude.Attempt
 
         #region Private Methods
 
-        private Page GetCurrentPageObject()
+        private bool HasBeenSubmitted()
+        {
+            return _result.SubmittedDate != null;
+        }
+
+        private ExamPage GetCurrentPageObject()
         {
             var currentPage = _exam.Pages.FirstOrDefault(x => x.Id == _pageOrder.FirstOrDefault(z => z.IsCurrentPage).PageId);
 
@@ -220,7 +261,7 @@ namespace JudeAptitude.Attempt
             return currentPage;
         }
 
-        private PageView ConvertPageToPageView(Page selectedPage)
+        private PageView ConvertPageToPageView(ExamPage selectedPage)
         {
             return new PageView(selectedPage.Title, selectedPage.Description, selectedPage.Questions.Count);
         }
@@ -252,7 +293,7 @@ namespace JudeAptitude.Attempt
 
         private void SetPageOrder()
         {
-            var pagesOrdered = new List<Page>();
+            var pagesOrdered = new List<ExamPage>();
             var orderCount = 1;
 
             if (_exam.RandomisePageOrder)
@@ -307,7 +348,7 @@ namespace JudeAptitude.Attempt
             return question;
         }
 
-        private bool ValidateExam(Exam exam)
+        private bool ValidateExam(JudeExam exam)
         {
             var examValidation = exam.ValidateExam();
 
@@ -488,6 +529,29 @@ namespace JudeAptitude.Attempt
         public bool ReversePassingThreshold { get; set; }
         public int PassingThresholdValue { get; set; }
     }
+
+    public abstract class AnswerView
+    {
+        public Guid QuestionId { get; set; }
+        public decimal Mark { get; set; }
+    }
+
+    public class MultipleChoiceAnswerView : AnswerView
+    {
+        public List<string> GivenAnswers { get; set; }
+    }
+
+    public class FreeTextAnswerView : AnswerView
+    {
+        public string GivenText { get; set; }
+    }
+
+    public class SliderAnswerView : AnswerView
+    {
+        public int GivenNumber { get; set; }
+    }
+
+
 
 
     public class PageOrder

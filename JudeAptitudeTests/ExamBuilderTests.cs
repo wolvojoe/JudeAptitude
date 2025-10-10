@@ -19,13 +19,13 @@ namespace JudeAptitudeTests
         public void Exam_WithPagesAndQuestions_ShouldBeValid()
         {
             // Arrange
-            var exam = new Exam("Sample Exam", isMarked: true);
+            var exam = new JudeExam("Sample Exam", isMarked: true);
 
-            var page1 = new Page("Page 1");
+            var page1 = new ExamPage("Page 1");
             var question1 = new DummyQuestion { Prompt = "What is 2+2?", CountsTowardsMarking = true };
             page1.Questions.Add(question1);
 
-            var page2 = new Page("Page 2");
+            var page2 = new ExamPage("Page 2");
             var question2 = new DummyQuestion { Prompt = "What is the capital of France?", CountsTowardsMarking = true };
             page2.Questions.Add(question2);
 
@@ -43,9 +43,9 @@ namespace JudeAptitudeTests
         public void Exam_WithAllQuestionTypes_ShouldBeValid()
         {
             // Arrange
-            var exam = new Exam("Complex Exam", isMarked: true);
+            var exam = new JudeExam("Complex Exam", isMarked: true);
 
-            var page1 = new Page("MCQ Page");
+            var page1 = new ExamPage("MCQ Page");
             var mcq = new MultipleChoiceQuestion
             {
                 Prompt = "Select all prime numbers",
@@ -55,7 +55,7 @@ namespace JudeAptitudeTests
             };
             page1.Questions.Add(mcq);
 
-            var page2 = new Page("Free Text Page");
+            var page2 = new ExamPage("Free Text Page");
             var ftq = new FreeTextQuestion
             {
                 Prompt = "What is the answer to life, the universe and everything?",
@@ -65,7 +65,7 @@ namespace JudeAptitudeTests
             };
             page2.Questions.Add(ftq);
 
-            var page3 = new Page("Slider Page");
+            var page3 = new ExamPage("Slider Page");
             var slider = new SliderQuestion
             {
                 Prompt = "Rate your experience from 1 to 10",
@@ -182,7 +182,7 @@ namespace JudeAptitudeTests
         [Test]
         public void Exam_WithNoPages_ShouldBeInvalid()
         {
-            var exam = new Exam("No Pages Exam", isMarked: false);
+            var exam = new JudeExam("No Pages Exam", isMarked: false);
             var result = exam.ValidateExam();
             Assert.IsFalse(result.IsValid);
             Assert.That(result.Errors, Does.Contain("Exam has no Pages"));
@@ -191,8 +191,8 @@ namespace JudeAptitudeTests
         [Test]
         public void Exam_WithPagesButNoQuestions_ShouldBeInvalid()
         {
-            var exam = new Exam("No Questions Exam", isMarked: false);
-            exam.Pages.Add(new Page("Page 1"));
+            var exam = new JudeExam("No Questions Exam", isMarked: false);
+            exam.Pages.Add(new ExamPage("Page 1"));
             var result = exam.ValidateExam();
             Assert.IsFalse(result.IsValid);
             Assert.That(result.Errors, Does.Contain("Exam has no Questions"));
@@ -201,8 +201,8 @@ namespace JudeAptitudeTests
         [Test]
         public void MarkedExam_WithNoMarkedQuestions_ShouldBeInvalid()
         {
-            var exam = new Exam("Marked Exam", isMarked: true);
-            var page = new Page("Page 1");
+            var exam = new JudeExam("Marked Exam", isMarked: true);
+            var page = new ExamPage("Page 1");
             var question = new DummyQuestion { Prompt = "Unmarked Question", CountsTowardsMarking = false };
             page.Questions.Add(question);
             exam.Pages.Add(page);
@@ -219,8 +219,8 @@ namespace JudeAptitudeTests
         [Test]
         public void MarkedExam_WithInvalidQuestion_ShouldBeInvalid()
         {
-            var exam = new Exam("Invalid Question Exam", isMarked: true);
-            var page = new Page("Page 1");
+            var exam = new JudeExam("Invalid Question Exam", isMarked: true);
+            var page = new ExamPage("Page 1");
             var invalidQuestion = new InvalidDummyQuestion { Prompt = "Invalid", CountsTowardsMarking = true };
             page.Questions.Add(invalidQuestion);
             exam.Pages.Add(page);
@@ -234,8 +234,8 @@ namespace JudeAptitudeTests
         [Test]
         public void MarkedExam_WithMultipleInvalidQuestions_ShouldAggregateErrors()
         {
-            var exam = new Exam("Multiple Invalid Questions", isMarked: true);
-            var page = new Page("Page 1");
+            var exam = new JudeExam("Multiple Invalid Questions", isMarked: true);
+            var page = new ExamPage("Page 1");
             var invalidQuestion1 = new InvalidDummyQuestion { Prompt = "Invalid 1", CountsTowardsMarking = true };
             var invalidQuestion2 = new InvalidDummyQuestion { Prompt = "Invalid 2", CountsTowardsMarking = true };
             page.Questions.Add(invalidQuestion1);
@@ -252,8 +252,8 @@ namespace JudeAptitudeTests
         [Test]
         public void MarkedExam_WithValidAndInvalidQuestions_ShouldBeInvalid()
         {
-            var exam = new Exam("Mixed Validity Questions", isMarked: true);
-            var page = new Page("Page 1");
+            var exam = new JudeExam("Mixed Validity Questions", isMarked: true);
+            var page = new ExamPage("Page 1");
             var validQuestion = new DummyQuestion { Prompt = "Valid", CountsTowardsMarking = true };
             var invalidQuestion = new InvalidDummyQuestion { Prompt = "Invalid", CountsTowardsMarking = true };
             page.Questions.Add(validQuestion);
@@ -388,7 +388,7 @@ namespace JudeAptitudeTests
         [Test]
         public void Exam_Constructor_InitializesProperties()
         {
-            var exam = new Exam("Sample Exam", isMarked: true);
+            var exam = new JudeExam("Sample Exam", isMarked: true);
             Assert.AreEqual("Sample Exam", exam.Title);
             Assert.IsTrue(exam.IsMarked);
             Assert.IsNotNull(exam.Pages);
@@ -399,8 +399,8 @@ namespace JudeAptitudeTests
         [Test]
         public void ValidateExam_ReturnsValid_WhenExamIsValid()
         {
-            var exam = new Exam("Valid Exam", isMarked: true);
-            var page = new Page("Page 1");
+            var exam = new JudeExam("Valid Exam", isMarked: true);
+            var page = new ExamPage("Page 1");
             var question = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
             page.Questions.Add(question);
             exam.Pages.Add(page);
@@ -412,7 +412,7 @@ namespace JudeAptitudeTests
         [Test]
         public void ValidateExam_ReturnsInvalid_WhenNoPages()
         {
-            var exam = new Exam("No Pages", isMarked: false);
+            var exam = new JudeExam("No Pages", isMarked: false);
             var result = exam.ValidateExam();
             Assert.IsFalse(result.IsValid);
             Assert.That(result.Errors, Does.Contain("Exam has no Pages"));
@@ -421,8 +421,8 @@ namespace JudeAptitudeTests
         [Test]
         public void ValidateExam_ReturnsInvalid_WhenNoQuestions()
         {
-            var exam = new Exam("No Questions", isMarked: false);
-            exam.Pages.Add(new Page("Page 1"));
+            var exam = new JudeExam("No Questions", isMarked: false);
+            exam.Pages.Add(new ExamPage("Page 1"));
             var result = exam.ValidateExam();
             Assert.IsFalse(result.IsValid);
             Assert.That(result.Errors, Does.Contain("Exam has no Questions"));
@@ -431,9 +431,9 @@ namespace JudeAptitudeTests
         [Test]
         public void AllQuestions_ReturnsAllQuestions()
         {
-            var exam = new Exam("Exam", isMarked: false);
-            var page1 = new Page("Page 1");
-            var page2 = new Page("Page 2");
+            var exam = new JudeExam("Exam", isMarked: false);
+            var page1 = new ExamPage("Page 1");
+            var page2 = new ExamPage("Page 2");
             var q1 = new DummyQuestion { Prompt = "Q1" };
             var q2 = new DummyQuestion { Prompt = "Q2" };
             page1.Questions.Add(q1);
@@ -450,8 +450,8 @@ namespace JudeAptitudeTests
         [Test]
         public void AllQuestionsCountingTowardsMark_ReturnsOnlyMarkedQuestions()
         {
-            var exam = new Exam("Exam", isMarked: true);
-            var page = new Page("Page 1");
+            var exam = new JudeExam("Exam", isMarked: true);
+            var page = new ExamPage("Page 1");
             var q1 = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
             var q2 = new DummyQuestion { Prompt = "Q2", CountsTowardsMarking = false };
             page.Questions.Add(q1);
@@ -467,7 +467,7 @@ namespace JudeAptitudeTests
         [Test]
         public void SetPassingMarkPercentage_ValidAndInvalidValues()
         {
-            var exam = new Exam("Exam", isMarked: true);
+            var exam = new JudeExam("Exam", isMarked: true);
             Assert.IsTrue(exam.SetPassingMarkPercentage(0.5m));
             Assert.IsFalse(exam.SetPassingMarkPercentage(-0.1m));
             Assert.IsFalse(exam.SetPassingMarkPercentage(1.1m));
@@ -476,8 +476,8 @@ namespace JudeAptitudeTests
         [Test]
         public void PassingMark_ReturnsExpectedValue()
         {
-            var exam = new Exam("Exam", isMarked: true);
-            var page = new Page("Page 1");
+            var exam = new JudeExam("Exam", isMarked: true);
+            var page = new ExamPage("Page 1");
             var q1 = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
             page.Questions.Add(q1);
             exam.Pages.Add(page);
@@ -490,9 +490,9 @@ namespace JudeAptitudeTests
         [Test]
         public void MaximumPossibleMark_SumsAllPages()
         {
-            var exam = new Exam("Exam", isMarked: true);
-            var page1 = new Page("Page 1");
-            var page2 = new Page("Page 2");
+            var exam = new JudeExam("Exam", isMarked: true);
+            var page1 = new ExamPage("Page 1");
+            var page2 = new ExamPage("Page 2");
             var q1 = new DummyQuestion { Prompt = "Q1", CountsTowardsMarking = true };
             var q2 = new DummyQuestion { Prompt = "Q2", CountsTowardsMarking = true };
             page1.Questions.Add(q1);
