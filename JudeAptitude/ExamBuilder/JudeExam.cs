@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace JudeAptitude.ExamBuilder
 {
-    public class Exam
+    public class JudeExam
     {
         public Guid Id { get; }
         public string Title { get; }
@@ -21,7 +21,7 @@ namespace JudeAptitude.ExamBuilder
         public bool IsMarked { get; }
         public bool RandomisePageOrder { get; set; }
 
-        public List<Page> Pages { get; set; }
+        public List<ExamPage> Pages { get; set; }
 
         public decimal PassingMarkPercentage
         {
@@ -33,13 +33,13 @@ namespace JudeAptitude.ExamBuilder
 
         private decimal _passingMarkPercentage { get; set; }
 
-        public Exam(string title, bool isMarked)
+        public JudeExam(string title, bool isMarked)
         {
             Id = Guid.NewGuid();
             Title = title;
             IsMarked = isMarked;
 
-            Pages = new List<Page>();
+            Pages = new List<ExamPage>();
             Tags = new List<string>();
             Difficulty = DifficultyLevel.NotSpecified;
 

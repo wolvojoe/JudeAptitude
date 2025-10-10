@@ -14,14 +14,14 @@ namespace JudeAptitude.Attempt
         public Guid ExamAttemptId { get; }
 
 
-        private Exam _exam { get; set; }
+        private JudeExam _exam { get; set; }
         private List<Answer> _answers { get; }
         private ExamResult _result { get; set; }
         private List<PageOrder> _pageOrder { get; set; }
         private Dictionary<Guid, int> _questionOrder { get; set; }
 
 
-        public ExamAttempt(Exam exam)
+        public ExamAttempt(JudeExam exam)
         {
             ValidateExam(exam);
 
@@ -210,7 +210,7 @@ namespace JudeAptitude.Attempt
 
         #region Private Methods
 
-        private Page GetCurrentPageObject()
+        private ExamPage GetCurrentPageObject()
         {
             var currentPage = _exam.Pages.FirstOrDefault(x => x.Id == _pageOrder.FirstOrDefault(z => z.IsCurrentPage).PageId);
 
@@ -220,7 +220,7 @@ namespace JudeAptitude.Attempt
             return currentPage;
         }
 
-        private PageView ConvertPageToPageView(Page selectedPage)
+        private PageView ConvertPageToPageView(ExamPage selectedPage)
         {
             return new PageView(selectedPage.Title, selectedPage.Description, selectedPage.Questions.Count);
         }
@@ -252,7 +252,7 @@ namespace JudeAptitude.Attempt
 
         private void SetPageOrder()
         {
-            var pagesOrdered = new List<Page>();
+            var pagesOrdered = new List<ExamPage>();
             var orderCount = 1;
 
             if (_exam.RandomisePageOrder)
@@ -307,7 +307,7 @@ namespace JudeAptitude.Attempt
             return question;
         }
 
-        private bool ValidateExam(Exam exam)
+        private bool ValidateExam(JudeExam exam)
         {
             var examValidation = exam.ValidateExam();
 

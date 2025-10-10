@@ -4,7 +4,7 @@ using System.Text;
 
 namespace JudeAptitude.ExamBuilder
 {
-    public class Page
+    public class ExamPage
     {
         public Guid Id { get; }
 
@@ -15,7 +15,7 @@ namespace JudeAptitude.ExamBuilder
         public int Order { get; set; }
 
 
-        public Page(string title)
+        public ExamPage(string title)
         {
             Title = title;
             Id = Guid.NewGuid();
