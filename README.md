@@ -70,7 +70,7 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 
 | Exam Builder |  |
 | --- | --- |
-| **JudeExam**	| The main Exam object	| 
+| ### JudeExam	| The main Exam object	| 
 | Title	| Title of the Exam	| 
 | Description	| Description of the Exam	| 
 | Subject	| Subject of the Exam	| 
