@@ -68,7 +68,7 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 
 ## Documentation
 
-| Exam Builder Objects |  |
+| Exam Builder |  |
 | --- | --- |
 | **JudeExam**	| The main Exam object	| 
 | Title	| Title of the Exam	| 
@@ -120,7 +120,7 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 
 ***
 
-| Exam Attempt Objects |  |
+| Exam Attempt |  |
 | --- | --- |
 | **ExamAttempt**	| Accepts a JudeExam object and provides functionality to Attempt the Exam	| 
 | SubmitAnswerForQuestionOnCurrentPage	| Submit an Answer for the current Page	| 
