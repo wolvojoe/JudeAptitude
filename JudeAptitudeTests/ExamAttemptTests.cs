@@ -113,15 +113,15 @@ namespace JudeAptitudeTests
             Assert.IsNotNull(attempt.GetCurrentAnswerForQuestion(slider.Id));
 
             // GetCorrectAnswerForQuestion
-            var correctMcq = attempt.GetCorrectAnswerForQuestion(mcq.Id) as MultipleChoiceAnswer;
+            var correctMcq = attempt.GetCorrectAnswerForQuestion(mcq.Id) as MultipleChoiceAnswerView;
             Assert.IsNotNull(correctMcq);
             Assert.That(correctMcq.GivenAnswers, Is.EquivalentTo(mcq.CorrectAnswers));
 
-            var correctFtq = attempt.GetCorrectAnswerForQuestion(ftq.Id) as FreeTextAnswer;
+            var correctFtq = attempt.GetCorrectAnswerForQuestion(ftq.Id) as FreeTextAnswerView;
             Assert.IsNotNull(correctFtq);
             Assert.AreEqual(ftq.ExpectedAnswer, correctFtq.GivenText);
 
-            var correctSlider = attempt.GetCorrectAnswerForQuestion(slider.Id) as SliderAnswer;
+            var correctSlider = attempt.GetCorrectAnswerForQuestion(slider.Id) as SliderAnswerView;
             Assert.IsNotNull(correctSlider);
             Assert.That(correctSlider.GivenNumber, Is.InRange(slider.MinValue, slider.MaxValue));
 
