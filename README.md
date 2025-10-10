@@ -66,7 +66,7 @@ Once you have an Exam a user can now Attempt it
 Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and the Exam Attempt will be marked and return a Result object.
 
 
-### JudeExam
+## Documentation
 
 | JudeExam	| 	| 
 | --- | --- |
@@ -138,4 +138,7 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 | NavigateToPreviousPage()	| Moves the Exam to the Previous Page defined on the Exam	| 
 
 
-In memory of Jude (2023 - 2024)
+***
+
+
+In memory of Jude (2023 - 2024)**
