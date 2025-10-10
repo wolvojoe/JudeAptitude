@@ -68,7 +68,9 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 
 ## Documentation
 
-| JudeExam	| 	| 
+## Exam Builder
+
+| JudeExam	| The main Exam object	| 
 | --- | --- |
 | Title	| Title of the Exam	| 
 | Description	| Description of the Exam	| 
@@ -86,7 +88,7 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 | PassingMarkTotal()	| Total passing mark	| 
 | MaximumPossibleMark()	| Maximum passing mark	| 
 
-| ExamPage	| 	| 
+| ExamPage	| Page for an Exam	| 
 | --- | --- |
 | Title	| Title of the Page	| 
 | Description	| Description of the Page, could be used to display HTML content	| 
@@ -95,7 +97,7 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 | Order	| Used to Order Pages	| 
 | MaximumPossibleMark()	| Maximum possible Mark for the current Page	| 
 
-| Questions	| 	| 
+| Questions	| Functionality common to all Question types	| 
 | --- | --- |
 | Prompt	| The text used for the Question Prompt	| 
 | Description	| Description for the Question, could be used for HTML content	| 
@@ -126,7 +128,10 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 | ReversePassingThreshold	| If a correct answer it positive of the Threshold of negative of it	| 
 | PassingThresholdValue	| Passing value of say 7	| 
 
-| ExamAttempt	| 	| 
+
+## Exam Attempt
+
+| ExamAttempt	| Accepts a JudeExam object and provides functionality to Attempt the Exam	| 
 | --- | --- |
 | SubmitAnswerForQuestionOnCurrentPage	| Submit an Answer for the current Page	| 
 | SubmitExamAttempt()	| Submits and finalises the Exam Attempt and potentially Marking	| 
