@@ -18,9 +18,9 @@ Exams can also be marked, if so Questions that count towards the mark need to ha
 
 **Simple Exam**
 ```
-    var myFirstExam = new Exam("Hey Jude", isMarked: true);
+    var myFirstExam = new JudeExam("Hey Jude", isMarked: true);
 
-    var myFirstPage = new Page("Simple Page 1");
+    var myFirstPage = new ExamPage("Simple Page 1");
 
     var myFirstQuestion = new FreeTextQuestion
     {

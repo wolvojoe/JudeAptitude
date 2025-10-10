@@ -19,9 +19,14 @@ Supports functionality for Exams, Quizzes, Surveys, Training and CPD like proces
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageTags>Exam; Quiz; Survey; Training; CPD; Test; Testing; Question; Answer; Assessment; Review; Certification; Qualification; Poll; Questionnaire </PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>JudeAptitude-128.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\JudeAptitude-128.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Include="..\README.md">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
