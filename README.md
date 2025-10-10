@@ -68,10 +68,9 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 
 ## Documentation
 
-## Exam Builder
-
-| JudeExam	| The main Exam object	| 
+| Exam Builder |  |
 | --- | --- |
+| **JudeExam**	| The main Exam object	| 
 | Title	| Title of the Exam	| 
 | Description	| Description of the Exam	| 
 | Subject	| Subject of the Exam	| 
@@ -87,18 +86,14 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 | AllQuestions()	| Returns all Questions	| 
 | PassingMarkTotal()	| Total passing mark	| 
 | MaximumPossibleMark()	| Maximum passing mark	| 
-
-| ExamPage	| Page for an Exam	| 
-| --- | --- |
+| **ExamPage**	| Page for an Exam	| 
 | Title	| Title of the Page	| 
 | Description	| Description of the Page, could be used to display HTML content	| 
 | Questions	| Questions for the Page	| 
 | RandomiseQuestionOrder	| True = Questions on the Page will have their order randomised on each ExamAttempt, False = The Order attribute on a Question object will be used for ordering Questions	| 
 | Order	| Used to Order Pages	| 
 | MaximumPossibleMark()	| Maximum possible Mark for the current Page	| 
-
-| Questions	| Functionality common to all Question types	| 
-| --- | --- |
+| **Questions**	| Functionality common to all Question types	| 
 | Prompt	| The text used for the Question Prompt	| 
 | Description	| Description for the Question, could be used for HTML content	| 
 | Hint	| Value that could be shown against the Question	| 
@@ -107,32 +102,27 @@ Once the ExamAttempt has been completed, you can call SubmitExamAttempt() and th
 | CountsTowardsMarking	| True = Question will be counted towards the final Mark	| 
 | ValidateQuestion()	| Validate that you have created a valid Question	| 
 | MaximumPossibleMark()	| Maximum possible Mark for the Question	| 
-
-| MultipleChoiceQuestion	| Question type for True/ False, Checkbox or Radio Buttons	| 
-| --- | --- |
+| **MultipleChoiceQuestion**	| Question type for True/ False, Checkbox or Radio Buttons	| 
 | Options	| The options for the Multiple Choice	| 
 | CorrectAnswers	| The correct options	| 
 | SetToAllOrNothingMarking()	| Get all options correct to get a Mark	| 
 | SetToPartialMarking()	| Get some options correct to get a Mark	| 
-
-| FreeTextQuestion	| Question type for Textboxes	|
-| --- | --- | 
+| **FreeTextQuestion**	| Question type for Textboxes	|
 | ExpectedAnswer	| Expected text Answer	| 
 | Keywords	| Keywords for Partial Matching	| 
 | UseExactMatch	| False = Keywords will be checked	| 
-
-| SliderQuestion	| Question type for a Survey or Feedback form	| 
-| --- | --- |
+| **SliderQuestion**	| Question type for a Survey or Feedback form	| 
 | MinValue	| Min value of say 1	| 
 | MaxValue	| Max value of say 10	| 
 | ReversePassingThreshold	| If a correct answer it positive of the Threshold of negative of it	| 
 | PassingThresholdValue	| Passing value of say 7	| 
 
 
-## Exam Attempt
+***
 
-| ExamAttempt	| Accepts a JudeExam object and provides functionality to Attempt the Exam	| 
+| Exam Attempt |  |
 | --- | --- |
+| **ExamAttempt**	| Accepts a JudeExam object and provides functionality to Attempt the Exam	| 
 | SubmitAnswerForQuestionOnCurrentPage	| Submit an Answer for the current Page	| 
 | SubmitExamAttempt()	| Submits and finalises the Exam Attempt and potentially Marking	| 
 | GetAllQuestionsOnCurrentPage()	| Gets all the Questions on the current Page, ordered as defined on the Exam	| 
