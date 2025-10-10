@@ -4,6 +4,9 @@
 
 JudeAptitude is an Exam/ Quiz/ CPD/ Survey Engine, created in part because when I see this functionality in projects it's always spaghetti code.
 
+
+![JudeAptitude Logo](JudeAptitude-Normal.png)
+
 ## Exam Builder
 
 To start you need to create an Exam.
