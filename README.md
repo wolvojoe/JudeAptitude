@@ -1,6 +1,6 @@
 # JudeAptitude
 
-![JudeAptitude Logo](JudeAptitude-Github.jpg)
+![JudeAptitude Logo](https://raw.githubusercontent.com/wolvojoe/JudeAptitude/refs/heads/main/JudeAptitude-Github.jpg)
 
 ## Introduction
 
