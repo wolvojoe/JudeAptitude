@@ -1,6 +1,6 @@
 # JudeAptitude
 
-![JudeAptitude Logo](JudeAptitude-128.png)
+![JudeAptitude Logo](JudeAptitude-Github.jpg)
 
 ## Introduction
 

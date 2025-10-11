@@ -88,7 +88,7 @@ namespace JudeAptitude.Attempt
             if (!_exam.IsMarked)
             {
                 _result.Mark = null;
-
+                _result.ExamStatus = ExamStatus.NotMarked;
                 return _result;
             }
 
@@ -477,6 +477,7 @@ namespace JudeAptitude.Attempt
 
     public enum ExamStatus
     {
+        NotMarked,
         Passed,
         Failed
     }
