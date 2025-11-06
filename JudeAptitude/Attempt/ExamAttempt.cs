@@ -1,4 +1,5 @@
-﻿using JudeAptitude.ExamBuilder;
+﻿using JudeAptitude.Attempt.Dtos;
+using JudeAptitude.ExamBuilder;
 using JudeAptitude.ExamBuilder.Marking.Interfaces;
 using JudeAptitude.ExamBuilder.Marking.Strategies;
 using System;
@@ -9,6 +10,7 @@ using System.Text;
 
 namespace JudeAptitude.Attempt
 {
+    [Serializable]
     public class ExamAttempt
     {
         public Guid ExamAttemptId { get; }
@@ -458,107 +460,5 @@ namespace JudeAptitude.Attempt
 
         #endregion
 
-    }
-
-    public class ExamResult
-    {
-        public Guid ExamId { get; set; }
-        public Guid ExamAttemptId { get; set; }
-        public DateTime StartedDate { get; set; }
-        public DateTime? SubmittedDate { get; set; }
-
-        public ExamStatus ExamStatus { get; set; }
-        public decimal? Mark { get; set; }
-        public decimal? MaximumPossibleMark { get; set; }
-        public decimal? PassingMark { get; set; }
-
-        public List<Answer> Answers { get; set; }
-    }
-
-    public enum ExamStatus
-    {
-        NotMarked,
-        Passed,
-        Failed
-    }
-
-
-    public class PageView
-    {
-        public string Title { get; }
-        public string Description { get; }
-        public int QuestionsCount { get; }
-
-        public PageView(string title, string description, int questionCount)
-        {
-            Title = title;
-            Description = description;
-            QuestionsCount = questionCount;
-        }
-    }
-
-    public abstract class QuestionView
-    {
-        public Guid QuestionId { get; set; }
-        public string Prompt { get; set; }
-        public string Description { get; set; }
-        public string Hint { get; set; }
-        public string Feedback { get; set; }
-        public bool CountsTowardsMarking { get; set; }
-
-    }
-
-    public class MultipleChoiceQuestionView : QuestionView
-    {
-        public List<string> CorrectAnswers { get; set; }
-
-        public List<string> Options { get; set; }
-    }
-
-    public class FreeTextQuestionView : QuestionView
-    {
-        public string ExpectedAnswer { get; set; }
-
-        public List<string> Keywords { get; set; }
-    }
-
-    public class SliderQuestionView : QuestionView
-    {
-        public int MinValue { get; set; }
-        public int MaxValue { get; set; }
-
-        public bool ReversePassingThreshold { get; set; }
-        public int PassingThresholdValue { get; set; }
-    }
-
-    public abstract class AnswerView
-    {
-        public Guid QuestionId { get; set; }
-        public decimal Mark { get; set; }
-    }
-
-    public class MultipleChoiceAnswerView : AnswerView
-    {
-        public List<string> GivenAnswers { get; set; }
-    }
-
-    public class FreeTextAnswerView : AnswerView
-    {
-        public string GivenText { get; set; }
-    }
-
-    public class SliderAnswerView : AnswerView
-    {
-        public int GivenNumber { get; set; }
-    }
-
-
-
-
-    public class PageOrder
-    {
-        public Guid PageId { get; set; }
-        public int Order { get; set; }
-        public bool IsCurrentPage { get; set; }
     }
 }

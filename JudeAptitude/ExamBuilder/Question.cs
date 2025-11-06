@@ -12,9 +12,11 @@ namespace JudeAptitude.ExamBuilder
         public Guid Id { get; }
         public string Prompt { get; set; }
         public string Description { get; set; }
+        public string Image { get; set; }
         public string Hint { get; set; }
         public string Feedback { get; set; }
-
+        public string Source { get; set; }
+        public string AdditionalTraining { get; set; }
         public int Order { get; set; }
 
 
@@ -40,7 +42,7 @@ namespace JudeAptitude.ExamBuilder
     {
         public List<string> Options { get; set; }
         public List<string> CorrectAnswers { get; set; }
-
+        public QuestionRenderType RenderType { get; set; } = QuestionRenderType.Text;
 
         public MultipleChoiceQuestion()
         {
@@ -195,6 +197,13 @@ namespace JudeAptitude.ExamBuilder
 
             return 0m;
         }
+    }
+
+    public enum QuestionRenderType
+    {
+        Text,
+        HTML,
+        Image
     }
 
 }

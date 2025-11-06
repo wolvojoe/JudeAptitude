@@ -6,6 +6,7 @@ using System.Xml.Linq;
 
 namespace JudeAptitude.ExamBuilder
 {
+    [Serializable]
     public class JudeExam
     {
         public Guid Id { get; }
