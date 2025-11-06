@@ -4,6 +4,7 @@ using System.Text;
 
 namespace JudeAptitude.Attempt.Dtos
 {
+    [Serializable]
     public abstract class QuestionView
     {
         public Guid QuestionId { get; set; }
@@ -15,6 +16,7 @@ namespace JudeAptitude.Attempt.Dtos
 
     }
 
+    [Serializable]
     public class MultipleChoiceQuestionView : QuestionView
     {
         public List<string> CorrectAnswers { get; set; }
@@ -22,6 +24,7 @@ namespace JudeAptitude.Attempt.Dtos
         public List<string> Options { get; set; }
     }
 
+    [Serializable]
     public class FreeTextQuestionView : QuestionView
     {
         public string ExpectedAnswer { get; set; }
@@ -29,6 +32,7 @@ namespace JudeAptitude.Attempt.Dtos
         public List<string> Keywords { get; set; }
     }
 
+    [Serializable]
     public class SliderQuestionView : QuestionView
     {
         public int MinValue { get; set; }

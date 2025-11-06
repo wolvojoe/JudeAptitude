@@ -7,6 +7,8 @@ using System.Text;
 
 namespace JudeAptitude.ExamBuilder.Marking.Strategies
 {
+
+    [Serializable]
     public class FreeTextMarkingStrategy : IMarkingStrategy
     {
         public decimal Evaluate(MultipleChoiceQuestion question, MultipleChoiceAnswer answer)

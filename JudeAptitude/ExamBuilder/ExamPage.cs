@@ -4,6 +4,7 @@ using System.Text;
 
 namespace JudeAptitude.ExamBuilder
 {
+    [Serializable]
     public class ExamPage
     {
         public Guid Id { get; }

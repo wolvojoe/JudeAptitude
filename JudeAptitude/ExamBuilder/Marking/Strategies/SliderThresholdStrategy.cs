@@ -7,6 +7,8 @@ using System.Text;
 
 namespace JudeAptitude.ExamBuilder.Marking.Strategies
 {
+
+    [Serializable]
     public class SliderThresholdStrategy : IMarkingStrategy
     {
         public SliderThresholdStrategy()
