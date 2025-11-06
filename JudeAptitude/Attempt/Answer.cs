@@ -6,6 +6,7 @@ using System.Text;
 
 namespace JudeAptitude.Attempt
 {
+    [Serializable]
     public abstract class Answer
     {
         public Guid QuestionId { get; set; }

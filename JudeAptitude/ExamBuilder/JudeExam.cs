@@ -176,6 +176,7 @@ namespace JudeAptitude.ExamBuilder
         }
     }
 
+    [Serializable]
     public class ValidationResult
     {
         public bool IsValid { get; }

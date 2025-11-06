@@ -7,6 +7,8 @@ using System.Text;
 
 namespace JudeAptitude.ExamBuilder.Marking.Strategies
 {
+
+    [Serializable]
     public class PartialCreditStrategy : IMarkingStrategy
     {
         private readonly decimal _pointPerCorrect = 1.0m;

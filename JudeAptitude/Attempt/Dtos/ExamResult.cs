@@ -4,7 +4,7 @@ using System.Text;
 
 namespace JudeAptitude.Attempt.Dtos
 {
-
+    [Serializable]
     public class ExamResult
     {
         public Guid ExamId { get; set; }

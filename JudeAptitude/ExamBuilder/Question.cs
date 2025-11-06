@@ -7,6 +7,7 @@ using System.Text;
 
 namespace JudeAptitude.ExamBuilder
 {
+    [Serializable]
     public abstract class Question
     {
         public Guid Id { get; }
@@ -38,6 +39,8 @@ namespace JudeAptitude.ExamBuilder
         public abstract decimal MaximumPossibleMark();
     }
 
+
+    [Serializable]
     public class MultipleChoiceQuestion : Question
     {
         public List<string> Options { get; set; }
@@ -107,7 +110,7 @@ namespace JudeAptitude.ExamBuilder
         }
     }
 
-
+    [Serializable]
     public class FreeTextQuestion : Question
     {
         public string ExpectedAnswer { get; set; }
@@ -157,7 +160,7 @@ namespace JudeAptitude.ExamBuilder
     }
 
 
-
+    [Serializable]
     public class SliderQuestion : Question
     {
         public int MinValue { get; set; } = 0;

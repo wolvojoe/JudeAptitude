@@ -4,6 +4,7 @@ using System.Text;
 
 namespace JudeAptitude.Attempt.Dtos
 {
+    [Serializable]
     public class PageView
     {
         public string Title { get; }
@@ -18,7 +19,7 @@ namespace JudeAptitude.Attempt.Dtos
         }
     }
 
-
+    [Serializable]
     public class PageOrder
     {
         public Guid PageId { get; set; }
